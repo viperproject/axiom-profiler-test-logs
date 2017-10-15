@@ -1,0 +1,28 @@
+domain Process {
+ 
+   function p_seq(p1: Process, p2: Process): Process
+ 
+   function p_ping(): Process
+ 
+   function p_ping_omega(): Process
+ 
+   axiom seq_assoc {
+     (forall p1: Process, p2: Process, p3: Process :: { p_seq(p_seq(p1,
+p2), p3) } p_seq(p_seq(p1, p2), p3) == p_seq(p1, p_seq(p2, p3)))
+   }
+ 
+   axiom ping_omega_def {
+     p_seq(p_ping(), p_ping_omega()) == p_ping_omega()
+   }
+ 
+   axiom ping_omega_lemma {
+     p_seq(p_ping_omega(),p_ping()) == p_ping_omega()
+   }
+ 
+}
+ 
+method test() returns ()
+{
+   assert p_seq(p_ping(), p_ping_omega()) == p_seq(p_ping_omega(),
+p_ping());
+}
