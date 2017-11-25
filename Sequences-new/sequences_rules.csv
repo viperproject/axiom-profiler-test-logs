@@ -1,0 +1,12 @@
+*;; * ;;-13676721;True;None;After;None;True;Precedence;70;False
++;; + ;;-13676721;True;None;After;None;True;Precedence;20;False
+=;; = ;;-13676721;True;None;After;None;False;Precedence;10;False
+int_2_U;;;;-13676721;True;After;After;Before;False;Never;0;False
+not;!;;;-13676721;True;None;None;None;False;Precedence;100;False
+Seq#Append;; ++ ;;-13676721;True;None;After;None;True;Precedence;20;False
+Seq#Drop;;[;..];-13676721;True;None;After;Before;False;Precedence;100;False
+Seq#Equal;; == ;;-13676721;True;None;After;None;True;Precedence;50;False
+Seq#Index;;[;];-13676721;True;After;None;None;False;Precedence;100;False
+Seq#Length;|;;|;-13676721;True;After;None;Before;False;Never;100;False
+Seq#Singleton;{;;};-13676721;True;None;None;None;False;Never;100;False
+Seq#Take;;[..;];-13676721;True;None;Before;Before;False;Precedence;100;False
