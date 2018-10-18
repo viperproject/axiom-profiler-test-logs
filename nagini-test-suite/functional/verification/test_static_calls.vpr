@@ -1,0 +1,2124 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function Place(): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function set_basic(): PyType
+  
+  function set(arg0: PyType): PyType
+  
+  function set_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function traceback(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function Sequence_basic(): PyType
+  
+  function Sequence(arg0: PyType): PyType
+  
+  function Sequence_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function slice(): PyType
+  
+  unique function range(): PyType
+  
+  unique function Iterator_basic(): PyType
+  
+  function Iterator(arg0: PyType): PyType
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function LevelType(): PyType
+  
+  unique function type(): PyType
+  
+  unique function __prim__Sequence_type(): PyType
+  
+  unique function MyException(): PyType
+  
+  unique function MySpecialException(): PyType
+  
+  unique function MyOtherException(): PyType
+  
+  unique function ParameterizedException(): PyType
+  
+  unique function Container(): PyType
+  
+  unique function Super(): PyType
+  
+  unique function Sub(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType :: { set(var0) } extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) && get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_Sequence {
+    (forall var0: PyType :: { Sequence(var0) } extends_(Sequence(var0), object()) && get_basic(Sequence(var0)) == Sequence_basic())
+  }
+  
+  axiom Sequence_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Sequence(arg0)) ==> Sequence_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range {
+    extends_(range(), object()) && get_basic(range()) == range()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType :: { Iterator(var0) } extends_(Iterator(var0), object()) && get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype___prim__Sequence_type {
+    extends_(__prim__Sequence_type(), object()) && get_basic(__prim__Sequence_type()) == __prim__Sequence_type()
+  }
+  
+  axiom subtype_MyException {
+    extends_(MyException(), Exception()) && get_basic(MyException()) == MyException()
+  }
+  
+  axiom subtype_MySpecialException {
+    extends_(MySpecialException(), MyException()) && get_basic(MySpecialException()) == MySpecialException()
+  }
+  
+  axiom subtype_MyOtherException {
+    extends_(MyOtherException(), Exception()) && get_basic(MyOtherException()) == MyOtherException()
+  }
+  
+  axiom subtype_ParameterizedException {
+    extends_(ParameterizedException(), Exception()) && get_basic(ParameterizedException()) == ParameterizedException()
+  }
+  
+  axiom subtype_Container {
+    extends_(Container(), object()) && get_basic(Container()) == Container()
+  }
+  
+  axiom subtype_Super {
+    extends_(Super(), object()) && get_basic(Super()) == Super()
+  }
+  
+  axiom subtype_Sub {
+    extends_(Sub(), Super()) && get_basic(Sub()) == Sub()
+  }
+}
+
+domain Thread {
+  
+  function getMethod(t: Ref): ThreadingID
+  
+  function getArg(t: Ref, i: Int): Ref
+  
+  function getOld(t: Ref, i: Int): Ref
+}
+
+domain Function {
+  
+  
+}
+
+domain ThreadingID {
+  
+  unique function __init___threading(): ThreadingID
+  
+  unique function append_threading(): ThreadingID
+  
+  unique function extend_threading(): ThreadingID
+  
+  unique function reverse_threading(): ThreadingID
+  
+  unique function __setitem___threading(): ThreadingID
+  
+  unique function __iter___threading(): ThreadingID
+  
+  unique function __getitem_slice___threading(): ThreadingID
+  
+  unique function __add___threading(): ThreadingID
+  
+  unique function __mul___threading(): ThreadingID
+  
+  unique function __init___threading_0(): ThreadingID
+  
+  unique function add_threading(): ThreadingID
+  
+  unique function remove_threading(): ThreadingID
+  
+  unique function clear_threading(): ThreadingID
+  
+  unique function __iter___threading_0(): ThreadingID
+  
+  unique function __init___threading_1(): ThreadingID
+  
+  unique function keys_threading(): ThreadingID
+  
+  unique function __setitem___threading_0(): ThreadingID
+  
+  unique function __iter___threading_1(): ThreadingID
+  
+  unique function values_threading(): ThreadingID
+  
+  unique function split_threading(): ThreadingID
+  
+  unique function __iter___threading_2(): ThreadingID
+  
+  unique function __next___threading(): ThreadingID
+  
+  unique function __del___threading(): ThreadingID
+  
+  unique function __init___threading_2(): ThreadingID
+  
+  unique function __init___threading_3(): ThreadingID
+  
+  unique function return_func_threading(): ThreadingID
+  
+  unique function some_func_threading(): ThreadingID
+  
+  unique function some_func_2_threading(): ThreadingID
+  
+  unique function other_func_threading(): ThreadingID
+  
+  unique function so_many_methods_threading(): ThreadingID
+  
+  unique function so_many_methods_2_threading(): ThreadingID
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+  
+  axiom low_true {
+    (forall x: T :: { Low(x) } Low(x))
+  }
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain _Name {
+  
+  function _combine(n1: _Name, n2: _Name): _Name
+  
+  function _single(n: Int): _Name
+  
+  function _get_combined_prefix(n: _Name): _Name
+  
+  function _get_combined_name(n: _Name): _Name
+  
+  function _get_value(n: _Name): Int
+  
+  function _is_single(n: _Name): Bool
+  
+  axiom all_single_or_combined {
+    (forall n: _Name :: n == _single(_get_value(n)) || n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom single_is_single {
+    (forall i: Int :: { _single(i) } _is_single(_single(i)))
+  }
+  
+  axiom combined_is_not_single {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } !_is_single(_combine(n1, n2)))
+  }
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom decompose_combined_prefix {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_prefix(_combine(n1, n2)) == n1)
+  }
+  
+  axiom decompose_combined_name {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_name(_combine(n1, n2)) == n2)
+  }
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+field ParameterizedException_num: Ref
+
+field Container_value: Ref
+
+function _joinable(t: Ref): Bool 
+
+
+function _isDefined(id: Int): Bool 
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id) 
+{
+  val
+}
+
+function _asserting(val: Ref, ass: Bool): Ref
+  requires ass 
+{
+  val
+}
+
+function _int_to_bool(i: Int): Bool 
+
+
+function __file__(): Ref 
+
+
+function __name__(): Ref 
+
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+  ensures (forall other: Int :: { __prim__int___box__(other) } (__prim__int___box__(other) == result) == (other == prim)) 
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box 
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0) 
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box 
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int()) 
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___add__(self: Int, other: Int): Int 
+{
+  self + other
+}
+
+function Level(r: Ref): Perm 
+
+
+function str___len__(self: Ref): Int
+  ensures result >= 0 
+
+
+function str___val__(self: Ref): Int 
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str() 
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other) 
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate MustInvokeCredit(r: Ref) 
+
+predicate _thread_start(t: Ref) 
+
+predicate _thread_post(t: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+method ParameterizedException___init__(_cthread_145: Ref, _caller_measures_145: Seq[Measure$], _residue_145: Perm, self: Ref, num: Ref) returns (_current_wait_level_145: Perm)
+  requires _cthread_145 != null
+  requires issubtype(typeof(_cthread_145), Thread_0())
+  requires self != null
+  requires acc(_MaySet(self, 107518183229235225814713473942959592186813166766379714495082815824), write)
+  requires issubtype(typeof(self), ParameterizedException())
+  requires issubtype(typeof(num), int())
+  requires self != null
+  requires [true, perm(MustTerminate(_cthread_145)) == none && ((forperm _r_1: Ref [MustInvokeBounded(_r_1)] :: false) && ((forperm _r_1: Ref [MustInvokeUnbounded(_r_1)] :: false) && ((forperm _r_1: Ref [_r_1.MustReleaseBounded] :: false) && (forperm _r_1: Ref [_r_1.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _current_wait_level_145) && ((forperm _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _current_wait_level_145) && _residue_145 <= _current_wait_level_145), true]
+  ensures acc(self.ParameterizedException_num, write) && issubtype(typeof(self.ParameterizedException_num), int())
+  ensures int___eq__(self.ParameterizedException_num, num)
+  ensures [true, (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) && ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) && ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) && (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_7: Ref
+  var num_0: Ref
+  var _cwl_145: Perm
+  var _method_measures_145: Seq[Measure$]
+  _method_measures_145 := Seq[Measure$]()
+  inhale typeof(self) == ParameterizedException()
+  _err := null
+  self_7 := self
+  num_0 := num
+  if (perm(_MaySet(self_7, 107518183229235225814713473942959592186813166766379714495082815824)) > none) {
+    exhale acc(_MaySet(self_7, 107518183229235225814713473942959592186813166766379714495082815824), write)
+    inhale acc(self_7.ParameterizedException_num, write)
+  }
+  self_7.ParameterizedException_num := num_0
+  goto __end
+  label __end
+}
+
+method Container___init__(_cthread_146: Ref, _caller_measures_146: Seq[Measure$], _residue_146: Perm, self_0: Ref) returns (_current_wait_level_146: Perm)
+  requires _cthread_146 != null
+  requires issubtype(typeof(_cthread_146), Thread_0())
+  requires self_0 != null
+  requires acc(_MaySet(self_0, 12015246693702276493947828542597337277), write)
+  requires issubtype(typeof(self_0), Container())
+  requires self_0 != null
+  requires [true, perm(MustTerminate(_cthread_146)) == none && ((forperm _r_4: Ref [MustInvokeBounded(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBounded] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_2: Ref [_r_2.MustReleaseBounded] :: Level(_r_2) <= _current_wait_level_146) && ((forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: Level(_r_2) <= _current_wait_level_146) && _residue_146 <= _current_wait_level_146), true]
+  ensures acc(self_0.Container_value, write) && issubtype(typeof(self_0.Container_value), int())
+  ensures [true, (forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) && ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) && ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) && (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_8: Ref
+  var _cwl_146: Perm
+  var _method_measures_146: Seq[Measure$]
+  _method_measures_146 := Seq[Measure$]()
+  inhale typeof(self_0) == Container()
+  _err := null
+  self_8 := self_0
+  if (perm(_MaySet(self_8, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(self_8, 12015246693702276493947828542597337277), write)
+    inhale acc(self_8.Container_value, write)
+  }
+  self_8.Container_value := __prim__int___box__(0)
+  goto __end
+  label __end
+}
+
+method Super_return_func(_cthread_147: Ref, _caller_measures_147: Seq[Measure$], _residue_147: Perm, self_1: Ref, c: Ref) returns (_current_wait_level_147: Perm, _res: Ref)
+  requires _cthread_147 != null
+  requires issubtype(typeof(_cthread_147), Thread_0())
+  requires issubtype(typeof(self_1), Super())
+  requires issubtype(typeof(c), Container())
+  requires self_1 != null
+  requires acc(c.Container_value, write) && issubtype(typeof(c.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_147)) == none && ((forperm _r_7: Ref [MustInvokeBounded(_r_7)] :: false) && ((forperm _r_7: Ref [MustInvokeUnbounded(_r_7)] :: false) && ((forperm _r_7: Ref [_r_7.MustReleaseBounded] :: false) && (forperm _r_7: Ref [_r_7.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_5: Ref [_r_5.MustReleaseBounded] :: Level(_r_5) <= _current_wait_level_147) && ((forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: Level(_r_5) <= _current_wait_level_147) && _residue_147 <= _current_wait_level_147), true]
+  ensures issubtype(typeof(_res), int())
+  ensures acc(c.Container_value, write) && issubtype(typeof(c.Container_value), int()) && int___eq__(_res, c.Container_value)
+  ensures [true, (forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_9: Ref
+  var c_2: Ref
+  var _cwl_147: Perm
+  var _method_measures_147: Seq[Measure$]
+  _method_measures_147 := Seq[Measure$]()
+  inhale typeof(self_1) == Super()
+  _res := null
+  _err := null
+  self_9 := self_1
+  c_2 := c
+  _res := c_2.Container_value
+  goto __end
+  goto __end
+  label __end
+}
+
+method Super_some_func(_cthread_148: Ref, _caller_measures_148: Seq[Measure$], _residue_148: Perm, self_2: Ref, c_0: Ref) returns (_current_wait_level_148: Perm, _res: Ref, _err: Ref)
+  requires _cthread_148 != null
+  requires issubtype(typeof(_cthread_148), Thread_0())
+  requires issubtype(typeof(self_2), Super())
+  requires issubtype(typeof(c_0), Container())
+  requires self_2 != null
+  requires acc(c_0.Container_value, write) && issubtype(typeof(c_0.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_148)) == none && ((forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_8: Ref [_r_8.MustReleaseBounded] :: Level(_r_8) <= _current_wait_level_148) && ((forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: Level(_r_8) <= _current_wait_level_148) && _residue_148 <= _current_wait_level_148), true]
+  ensures _err == null ==> issubtype(typeof(_res), int())
+  ensures _err == null ==> false
+  ensures _err != null && issubtype(typeof(_err), MyOtherException()) ==> acc(c_0.Container_value, write) && issubtype(typeof(c_0.Container_value), int()) && int___eq__(c_0.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c_0.Container_value)), 15)))
+  ensures _err != null ==> issubtype(typeof(_err), MyOtherException())
+  ensures [true, (forperm _r_9: Ref [MustInvokeBounded(_r_9)] :: false) && ((forperm _r_9: Ref [MustInvokeUnbounded(_r_9)] :: false) && ((forperm _r_9: Ref [_r_9.MustReleaseBounded] :: false) && (forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: false)))]
+{
+  var error: Ref
+  var try_finally_2: Int
+  var self_10: Ref
+  var c_3: Ref
+  var arg: Ref
+  var arg_13: Ref
+  var arg_14: Ref
+  var _res_0: Ref
+  var error_1_0: Ref
+  var try_finally_4_0: Int
+  var error_2_0: Ref
+  var try_finally_5_0: Int
+  var MySpecialException_res: Ref
+  var MyOtherException_res: Ref
+  var MySpecialException_res_0: Ref
+  var expr_res: Ref
+  var _cwl_148: Perm
+  var _method_measures_148: Seq[Measure$]
+  _method_measures_148 := Seq[Measure$]()
+  inhale typeof(self_2) == Super()
+  _res := null
+  _err := null
+  self_10 := self_2
+  c_3 := c_0
+  try_finally_2 := 0
+  arg := self_10
+  arg_13 := c_3
+  arg_14 := __prim__bool___box__(true)
+  try_finally_4_0 := 0
+  if (bool___unbox__(arg_14)) {
+    MySpecialException_res := new()
+    inhale typeof(MySpecialException_res) == MySpecialException()
+    error_1_0 := MySpecialException_res
+    if (error_1_0 != null) {
+      if (issubtype(typeof(error_1_0), MyException())) {
+        goto handlerMyException_0
+      } else {
+        error := error_1_0
+        goto __end_0
+      }
+    }
+  }
+  label post_try_1_0
+  try_finally_5_0 := 0
+  if (bool___unbox__(arg_14)) {
+    MyOtherException_res := new()
+    inhale typeof(MyOtherException_res) == MyOtherException()
+    error_2_0 := MyOtherException_res
+    if (error_2_0 != null) {
+      try_finally_5_0 := 2
+      goto try_finally_1_0
+    }
+  } else {
+    MySpecialException_res_0 := new()
+    inhale typeof(MySpecialException_res_0) == MySpecialException()
+    error_2_0 := MySpecialException_res_0
+    if (error_2_0 != null) {
+      try_finally_5_0 := 2
+      goto try_finally_1_0
+    }
+  }
+  goto try_finally_1_0
+  label post_try_2_0
+  label __end_0
+  if (error != null) {
+    if (issubtype(typeof(error), MySpecialException())) {
+      goto handlerMySpecialException
+    } else {
+      try_finally_2 := 2
+      goto try_finally
+    }
+  }
+  expr_res := _res_0
+  goto try_finally
+  label post_try
+  goto __end
+  label handlerMySpecialException
+  assert false
+  try_finally_2 := 0
+  goto try_finally
+  label try_finally
+  if (perm(_MaySet(c_0, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c_0, 12015246693702276493947828542597337277), write)
+    inhale acc(c_0.Container_value, write)
+  }
+  c_0.Container_value := __prim__int___box__(int___add__(int___unbox__(c_0.Container_value), 3))
+  if (try_finally_2 > 1) {
+    _err := error
+    goto __end
+  } elseif (try_finally_2 > 0) {
+    goto __end
+  } else {
+    goto post_try
+  }
+  label handlerMyException_0
+  if (perm(_MaySet(arg_13, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_13, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_13.Container_value, write)
+  }
+  arg_13.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_13.Container_value), 5))
+  goto post_try_1_0
+  label try_finally_1_0
+  if (perm(_MaySet(arg_13, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_13, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_13.Container_value, write)
+  }
+  arg_13.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_13.Container_value), 7))
+  if (try_finally_5_0 > 1) {
+    error := error_2_0
+    goto __end_0
+  } elseif (try_finally_5_0 > 0) {
+    goto __end_0
+  } else {
+    goto post_try_2_0
+  }
+  label __end
+}
+
+method Super_some_func_2(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, self_3: Ref, c_1: Ref) returns (_current_wait_level_149: Perm, _res: Ref, _err: Ref)
+  requires _cthread_149 != null
+  requires issubtype(typeof(_cthread_149), Thread_0())
+  requires issubtype(typeof(self_3), Super())
+  requires issubtype(typeof(c_1), Container())
+  requires self_3 != null
+  requires acc(c_1.Container_value, write) && issubtype(typeof(c_1.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_149)) == none && ((forperm _r_13: Ref [MustInvokeBounded(_r_13)] :: false) && ((forperm _r_13: Ref [MustInvokeUnbounded(_r_13)] :: false) && ((forperm _r_13: Ref [_r_13.MustReleaseBounded] :: false) && (forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_11: Ref [_r_11.MustReleaseBounded] :: Level(_r_11) <= _current_wait_level_149) && ((forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: Level(_r_11) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  ensures _err == null ==> issubtype(typeof(_res), int())
+  ensures _err == null ==> false
+  ensures _err != null && issubtype(typeof(_err), MySpecialException()) ==> acc(c_1.Container_value, write) && issubtype(typeof(c_1.Container_value), int()) && int___eq__(c_1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c_1.Container_value)), 15)))
+  ensures _err != null ==> issubtype(typeof(_err), MySpecialException())
+  ensures [true, (forperm _r_12: Ref [MustInvokeBounded(_r_12)] :: false) && ((forperm _r_12: Ref [MustInvokeUnbounded(_r_12)] :: false) && ((forperm _r_12: Ref [_r_12.MustReleaseBounded] :: false) && (forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: false)))]
+{
+  var error_0: Ref
+  var try_finally_3: Int
+  var self_11: Ref
+  var c_4: Ref
+  var arg_15: Ref
+  var arg_16: Ref
+  var arg_17: Ref
+  var _res_1: Ref
+  var error_1_1: Ref
+  var try_finally_4_1: Int
+  var error_2_1: Ref
+  var try_finally_5_1: Int
+  var MySpecialException_res_1: Ref
+  var MyOtherException_res_0: Ref
+  var MySpecialException_res_2: Ref
+  var expr_res_0: Ref
+  var _cwl_149: Perm
+  var _method_measures_149: Seq[Measure$]
+  _method_measures_149 := Seq[Measure$]()
+  inhale typeof(self_3) == Super()
+  _res := null
+  _err := null
+  self_11 := self_3
+  c_4 := c_1
+  try_finally_3 := 0
+  arg_15 := self_11
+  arg_16 := c_4
+  arg_17 := __prim__bool___box__(true)
+  try_finally_4_1 := 0
+  if (bool___unbox__(arg_17)) {
+    MySpecialException_res_1 := new()
+    inhale typeof(MySpecialException_res_1) == MySpecialException()
+    error_1_1 := MySpecialException_res_1
+    if (error_1_1 != null) {
+      if (issubtype(typeof(error_1_1), MyException())) {
+        goto handlerMyException_1
+      } else {
+        error_0 := error_1_1
+        goto __end_1
+      }
+    }
+  }
+  label post_try_1_1
+  try_finally_5_1 := 0
+  if (bool___unbox__(arg_17)) {
+    MyOtherException_res_0 := new()
+    inhale typeof(MyOtherException_res_0) == MyOtherException()
+    error_2_1 := MyOtherException_res_0
+    if (error_2_1 != null) {
+      try_finally_5_1 := 2
+      goto try_finally_1_1
+    }
+  } else {
+    MySpecialException_res_2 := new()
+    inhale typeof(MySpecialException_res_2) == MySpecialException()
+    error_2_1 := MySpecialException_res_2
+    if (error_2_1 != null) {
+      try_finally_5_1 := 2
+      goto try_finally_1_1
+    }
+  }
+  goto try_finally_1_1
+  label post_try_2_1
+  label __end_1
+  if (error_0 != null) {
+    if (issubtype(typeof(error_0), MySpecialException())) {
+      goto handlerMySpecialException_0
+    } else {
+      try_finally_3 := 2
+      goto try_finally_0
+    }
+  }
+  expr_res_0 := _res_1
+  goto try_finally_0
+  label post_try_0
+  goto __end
+  label handlerMySpecialException_0
+  assert false
+  try_finally_3 := 0
+  goto try_finally_0
+  label try_finally_0
+  if (perm(_MaySet(c_1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c_1, 12015246693702276493947828542597337277), write)
+    inhale acc(c_1.Container_value, write)
+  }
+  c_1.Container_value := __prim__int___box__(int___add__(int___unbox__(c_1.Container_value), 3))
+  if (try_finally_3 > 1) {
+    _err := error_0
+    goto __end
+  } elseif (try_finally_3 > 0) {
+    goto __end
+  } else {
+    goto post_try_0
+  }
+  label handlerMyException_1
+  if (perm(_MaySet(arg_16, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_16, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_16.Container_value, write)
+  }
+  arg_16.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_16.Container_value), 5))
+  goto post_try_1_1
+  label try_finally_1_1
+  if (perm(_MaySet(arg_16, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_16, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_16.Container_value, write)
+  }
+  arg_16.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_16.Container_value), 7))
+  if (try_finally_5_1 > 1) {
+    error_0 := error_2_1
+    goto __end_1
+  } elseif (try_finally_5_1 > 0) {
+    goto __end_1
+  } else {
+    goto post_try_2_1
+  }
+  label __end
+}
+
+method Super_other_func(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, self_4: Ref, c1: Ref, b: Ref) returns (_current_wait_level_150: Perm, _res: Ref, _err: Ref)
+  requires _cthread_150 != null
+  requires issubtype(typeof(_cthread_150), Thread_0())
+  requires issubtype(typeof(self_4), Super())
+  requires issubtype(typeof(c1), Container())
+  requires issubtype(typeof(b), bool())
+  requires self_4 != null
+  requires acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_150)) == none && ((forperm _r_16: Ref [MustInvokeBounded(_r_16)] :: false) && ((forperm _r_16: Ref [MustInvokeUnbounded(_r_16)] :: false) && ((forperm _r_16: Ref [_r_16.MustReleaseBounded] :: false) && (forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_14: Ref [_r_14.MustReleaseBounded] :: Level(_r_14) <= _current_wait_level_150) && ((forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: Level(_r_14) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  ensures _err == null ==> issubtype(typeof(_res), bool())
+  ensures _err == null ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(99))
+  ensures _err != null && issubtype(typeof(_err), MyOtherException()) ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c1.Container_value)), 12)))
+  ensures _err != null && issubtype(typeof(_err), MySpecialException()) ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c1.Container_value)), 7)))
+  ensures _err != null ==> issubtype(typeof(_err), MyOtherException()) || issubtype(typeof(_err), MySpecialException())
+  ensures [true, (forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false)))]
+{
+  var error_1: Ref
+  var try_finally_4: Int
+  var error_2: Ref
+  var try_finally_5: Int
+  var self_12: Ref
+  var c1_0: Ref
+  var b_0: Ref
+  var MySpecialException_res_3: Ref
+  var MyOtherException_res_1: Ref
+  var MySpecialException_res_4: Ref
+  var _cwl_150: Perm
+  var _method_measures_150: Seq[Measure$]
+  _method_measures_150 := Seq[Measure$]()
+  inhale typeof(self_4) == Super()
+  _res := null
+  _err := null
+  self_12 := self_4
+  c1_0 := c1
+  b_0 := b
+  try_finally_4 := 0
+  if (bool___unbox__(b_0)) {
+    MySpecialException_res_3 := new()
+    inhale typeof(MySpecialException_res_3) == MySpecialException()
+    error_1 := MySpecialException_res_3
+    if (error_1 != null) {
+      if (issubtype(typeof(error_1), MyException())) {
+        goto handlerMyException
+      } else {
+        _err := error_1
+        goto __end
+      }
+    }
+  }
+  label post_try_1
+  try_finally_5 := 0
+  if (bool___unbox__(b_0)) {
+    MyOtherException_res_1 := new()
+    inhale typeof(MyOtherException_res_1) == MyOtherException()
+    error_2 := MyOtherException_res_1
+    if (error_2 != null) {
+      try_finally_5 := 2
+      goto try_finally_1
+    }
+  } else {
+    MySpecialException_res_4 := new()
+    inhale typeof(MySpecialException_res_4) == MySpecialException()
+    error_2 := MySpecialException_res_4
+    if (error_2 != null) {
+      try_finally_5 := 2
+      goto try_finally_1
+    }
+  }
+  goto try_finally_1
+  label post_try_2
+  goto __end
+  label handlerMyException
+  if (perm(_MaySet(c1_0, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c1_0, 12015246693702276493947828542597337277), write)
+    inhale acc(c1_0.Container_value, write)
+  }
+  c1_0.Container_value := __prim__int___box__(int___add__(int___unbox__(c1_0.Container_value), 5))
+  goto post_try_1
+  label try_finally_1
+  if (perm(_MaySet(c1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c1, 12015246693702276493947828542597337277), write)
+    inhale acc(c1.Container_value, write)
+  }
+  c1.Container_value := __prim__int___box__(int___add__(int___unbox__(c1.Container_value), 7))
+  if (try_finally_5 > 1) {
+    _err := error_2
+    goto __end
+  } elseif (try_finally_5 > 0) {
+    goto __end
+  } else {
+    goto post_try_2
+  }
+  label __end
+}
+
+method Sub_so_many_methods(_cthread_151: Ref, _caller_measures_151: Seq[Measure$], _residue_151: Perm, self_5: Ref, ca: Ref, cb: Ref) returns (_current_wait_level_151: Perm, _res: Ref)
+  requires _cthread_151 != null
+  requires issubtype(typeof(_cthread_151), Thread_0())
+  requires issubtype(typeof(self_5), Sub())
+  requires issubtype(typeof(ca), Container())
+  requires issubtype(typeof(cb), Container())
+  requires self_5 != null
+  requires acc(ca.Container_value, write) && issubtype(typeof(ca.Container_value), int())
+  requires acc(cb.Container_value, write) && issubtype(typeof(cb.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_151)) == none && ((forperm _r_19: Ref [MustInvokeBounded(_r_19)] :: false) && ((forperm _r_19: Ref [MustInvokeUnbounded(_r_19)] :: false) && ((forperm _r_19: Ref [_r_19.MustReleaseBounded] :: false) && (forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <= _current_wait_level_151) && ((forperm _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <= _current_wait_level_151) && _residue_151 <= _current_wait_level_151), true]
+  ensures issubtype(typeof(_res), Container())
+  ensures acc(_res.Container_value, write) && issubtype(typeof(_res.Container_value), int()) && int___eq__(_res.Container_value, __prim__int___box__(int___add__(int___unbox__(old(cb.Container_value)), 24)))
+  ensures [true, (forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var loc: Ref
+  var error_3: Ref
+  var try_finally_6: Int
+  var error_4: Ref
+  var try_finally_7: Int
+  var self_13: Ref
+  var ca_1: Ref
+  var cb_1: Ref
+  var arg_18: Ref
+  var arg_19: Ref
+  var arg_20: Ref
+  var _res_2: Ref
+  var error_1_2: Ref
+  var try_finally_4_2: Int
+  var error_2_2: Ref
+  var try_finally_5_2: Int
+  var self_12_0: Ref
+  var c1_0_0: Ref
+  var b_0_0: Ref
+  var MySpecialException_res_3_0: Ref
+  var MyOtherException_res_1_0: Ref
+  var MySpecialException_res_4_0: Ref
+  var MySpecialException_res_5: Ref
+  var MyOtherException_res_2: Ref
+  var MySpecialException_res_6: Ref
+  var expr_res_1: Ref
+  var arg_21: Ref
+  var arg_22: Ref
+  var _res_3: Ref
+  var error_7: Ref
+  var self_9_0: Ref
+  var c_2_0: Ref
+  var arg_23: Ref
+  var arg_24: Ref
+  var _res_4: Ref
+  var error_8: Ref
+  var try_finally_2_0: Int
+  var self_10_0: Ref
+  var c_3_0: Ref
+  var arg_25: Ref
+  var arg_13_0: Ref
+  var arg_14_0: Ref
+  var _res_0_0: Ref
+  var error_1_0_0: Ref
+  var try_finally_4_0_0: Int
+  var error_2_0_0: Ref
+  var try_finally_5_0_0: Int
+  var MySpecialException_res_7: Ref
+  var MyOtherException_res_3: Ref
+  var MySpecialException_res_0_0: Ref
+  var expr_res_2: Ref
+  var arg_26: Ref
+  var arg_27: Ref
+  var arg_28: Ref
+  var _res_5: Ref
+  var error_1_3: Ref
+  var try_finally_4_3: Int
+  var error_2_3: Ref
+  var try_finally_5_3: Int
+  var self_12_1: Ref
+  var c1_0_1: Ref
+  var b_0_1: Ref
+  var MySpecialException_res_3_1: Ref
+  var MyOtherException_res_1_1: Ref
+  var MySpecialException_res_4_1: Ref
+  var MySpecialException_res_8: Ref
+  var MyOtherException_res_4: Ref
+  var MySpecialException_res_9: Ref
+  var expr_res_3: Ref
+  var expr_res_4: Ref
+  var _cwl_151: Perm
+  var _method_measures_151: Seq[Measure$]
+  _method_measures_151 := Seq[Measure$]()
+  inhale typeof(self_5) == Sub()
+  _res := null
+  _err := null
+  self_13 := self_5
+  ca_1 := ca
+  cb_1 := cb
+  try_finally_6 := 0
+  arg_18 := self_13
+  arg_19 := ca_1
+  arg_20 := __prim__bool___box__(false)
+  try_finally_4_2 := 0
+  if (bool___unbox__(arg_20)) {
+    MySpecialException_res_5 := new()
+    inhale typeof(MySpecialException_res_5) == MySpecialException()
+    error_1_2 := MySpecialException_res_5
+    if (error_1_2 != null) {
+      if (issubtype(typeof(error_1_2), MyException())) {
+        goto handlerMyException_2
+      } else {
+        error_3 := error_1_2
+        goto __end_2
+      }
+    }
+  }
+  label post_try_1_2
+  try_finally_5_2 := 0
+  if (bool___unbox__(arg_20)) {
+    MyOtherException_res_2 := new()
+    inhale typeof(MyOtherException_res_2) == MyOtherException()
+    error_2_2 := MyOtherException_res_2
+    if (error_2_2 != null) {
+      try_finally_5_2 := 2
+      goto try_finally_1_2
+    }
+  } else {
+    MySpecialException_res_6 := new()
+    inhale typeof(MySpecialException_res_6) == MySpecialException()
+    error_2_2 := MySpecialException_res_6
+    if (error_2_2 != null) {
+      try_finally_5_2 := 2
+      goto try_finally_1_2
+    }
+  }
+  goto try_finally_1_2
+  label post_try_2_2
+  label __end_2
+  if (error_3 != null) {
+    if (issubtype(typeof(error_3), MySpecialException())) {
+      goto handlerMySpecialException_1
+    } else {
+      exhale false
+      goto __end
+    }
+  }
+  expr_res_1 := _res_2
+  label post_try_3
+  arg_21 := self_13
+  arg_22 := ca_1
+  _res_3 := arg_22.Container_value
+  goto __end_3
+  label __end_3
+  loc := _res_3
+  inhale _isDefined(6516588)
+  assert int___eq__(_checkDefined(loc, 6516588), __prim__int___box__(77))
+  try_finally_7 := 0
+  arg_23 := self_13
+  arg_24 := cb_1
+  try_finally_2_0 := 0
+  arg_26 := arg_23
+  arg_27 := arg_24
+  arg_28 := __prim__bool___box__(true)
+  try_finally_4_3 := 0
+  if (bool___unbox__(arg_28)) {
+    MySpecialException_res_8 := new()
+    inhale typeof(MySpecialException_res_8) == MySpecialException()
+    error_1_3 := MySpecialException_res_8
+    if (error_1_3 != null) {
+      if (issubtype(typeof(error_1_3), MyException())) {
+        goto handlerMyException_3
+      } else {
+        error_8 := error_1_3
+        goto __end_5
+      }
+    }
+  }
+  label post_try_1_3
+  try_finally_5_3 := 0
+  if (bool___unbox__(arg_28)) {
+    MyOtherException_res_4 := new()
+    inhale typeof(MyOtherException_res_4) == MyOtherException()
+    error_2_3 := MyOtherException_res_4
+    if (error_2_3 != null) {
+      try_finally_5_3 := 2
+      goto try_finally_1_3
+    }
+  } else {
+    MySpecialException_res_9 := new()
+    inhale typeof(MySpecialException_res_9) == MySpecialException()
+    error_2_3 := MySpecialException_res_9
+    if (error_2_3 != null) {
+      try_finally_5_3 := 2
+      goto try_finally_1_3
+    }
+  }
+  goto try_finally_1_3
+  label post_try_2_3
+  label __end_5
+  if (error_8 != null) {
+    if (issubtype(typeof(error_8), MySpecialException())) {
+      goto handlerMySpecialException_3
+    } else {
+      try_finally_2_0 := 2
+      goto try_finally_10
+    }
+  }
+  expr_res_3 := _res_5
+  goto try_finally_10
+  label post_try_7
+  label __end_4
+  if (error_4 != null) {
+    if (issubtype(typeof(error_4), MyOtherException())) {
+      goto handlerMyOtherException
+    } else {
+      exhale false
+      goto __end
+    }
+  }
+  expr_res_4 := _res_4
+  label post_try_4
+  _res := cb_1
+  goto __end
+  goto __end
+  label handlerMySpecialException_1
+  if (perm(_MaySet(ca_1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(ca_1, 12015246693702276493947828542597337277), write)
+    inhale acc(ca_1.Container_value, write)
+  }
+  ca_1.Container_value := __prim__int___box__(77)
+  goto post_try_3
+  label handlerMyOtherException
+  if (perm(_MaySet(cb_1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(cb_1, 12015246693702276493947828542597337277), write)
+    inhale acc(cb_1.Container_value, write)
+  }
+  cb_1.Container_value := __prim__int___box__(int___add__(int___unbox__(cb_1.Container_value), 9))
+  goto post_try_4
+  label handlerMyException_2
+  if (perm(_MaySet(arg_27, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_27, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_27.Container_value, write)
+  }
+  arg_27.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_27.Container_value), 5))
+  goto post_try_1_2
+  label try_finally_1_2
+  if (perm(_MaySet(arg_19, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_19, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_19.Container_value, write)
+  }
+  arg_19.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_19.Container_value), 7))
+  if (try_finally_5_2 > 1) {
+    error_3 := error_2_2
+    goto __end_2
+  } elseif (try_finally_5_2 > 0) {
+    goto __end_2
+  } else {
+    goto post_try_2_2
+  }
+  label handlerMySpecialException_3
+  assert false
+  try_finally_2_0 := 0
+  goto try_finally_10
+  label try_finally_10
+  if (perm(_MaySet(arg_24, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_24, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_24.Container_value, write)
+  }
+  arg_24.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_24.Container_value), 3))
+  if (try_finally_2_0 > 1) {
+    error_4 := error_8
+    goto __end_4
+  } elseif (try_finally_2_0 > 0) {
+    goto __end_4
+  } else {
+    goto post_try_7
+  }
+  label handlerMyException_3
+  if (perm(_MaySet(arg_27, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_27, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_27.Container_value, write)
+  }
+  arg_27.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_27.Container_value), 5))
+  goto post_try_1_3
+  label try_finally_1_3
+  if (perm(_MaySet(arg_27, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_27, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_27.Container_value, write)
+  }
+  arg_27.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_27.Container_value), 7))
+  if (try_finally_5_3 > 1) {
+    error_8 := error_2_3
+    goto __end_5
+  } elseif (try_finally_5_3 > 0) {
+    goto __end_5
+  } else {
+    goto post_try_2_3
+  }
+  label __end
+}
+
+method Sub_so_many_methods_2(_cthread_152: Ref, _caller_measures_152: Seq[Measure$], _residue_152: Perm, self_6: Ref, ca_0: Ref, cb_0: Ref) returns (_current_wait_level_152: Perm, _res: Ref)
+  requires _cthread_152 != null
+  requires issubtype(typeof(_cthread_152), Thread_0())
+  requires issubtype(typeof(self_6), Sub())
+  requires issubtype(typeof(ca_0), Container())
+  requires issubtype(typeof(cb_0), Container())
+  requires self_6 != null
+  requires acc(ca_0.Container_value, write) && issubtype(typeof(ca_0.Container_value), int())
+  requires acc(cb_0.Container_value, write) && issubtype(typeof(cb_0.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_152)) == none && ((forperm _r_22: Ref [MustInvokeBounded(_r_22)] :: false) && ((forperm _r_22: Ref [MustInvokeUnbounded(_r_22)] :: false) && ((forperm _r_22: Ref [_r_22.MustReleaseBounded] :: false) && (forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_20: Ref [_r_20.MustReleaseBounded] :: Level(_r_20) <= _current_wait_level_152) && ((forperm _r_20: Ref [_r_20.MustReleaseUnbounded] :: Level(_r_20) <= _current_wait_level_152) && _residue_152 <= _current_wait_level_152), true]
+  ensures issubtype(typeof(_res), Container())
+  ensures acc(_res.Container_value, write) && issubtype(typeof(_res.Container_value), int()) && int___eq__(_res.Container_value, __prim__int___box__(int___add__(int___unbox__(old(cb_0.Container_value)), 4)))
+  ensures [true, (forperm _r_21: Ref [MustInvokeBounded(_r_21)] :: false) && ((forperm _r_21: Ref [MustInvokeUnbounded(_r_21)] :: false) && ((forperm _r_21: Ref [_r_21.MustReleaseBounded] :: false) && (forperm _r_21: Ref [_r_21.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var loc_0: Ref
+  var error_5: Ref
+  var try_finally_8: Int
+  var error_6: Ref
+  var try_finally_9: Int
+  var self_14: Ref
+  var ca_2: Ref
+  var cb_2: Ref
+  var arg_29: Ref
+  var arg_30: Ref
+  var arg_31: Ref
+  var _res_6: Ref
+  var error_1_4: Ref
+  var try_finally_4_4: Int
+  var error_2_4: Ref
+  var try_finally_5_4: Int
+  var self_12_2: Ref
+  var c1_0_2: Ref
+  var b_0_2: Ref
+  var MySpecialException_res_3_2: Ref
+  var MyOtherException_res_1_2: Ref
+  var MySpecialException_res_4_2: Ref
+  var MySpecialException_res_10: Ref
+  var MyOtherException_res_5: Ref
+  var MySpecialException_res_11: Ref
+  var expr_res_5: Ref
+  var arg_32: Ref
+  var arg_33: Ref
+  var _res_7: Ref
+  var error_9: Ref
+  var self_9_1: Ref
+  var c_2_1: Ref
+  var arg_34: Ref
+  var arg_35: Ref
+  var _res_8: Ref
+  var error_10: Ref
+  var try_finally_2_1: Int
+  var self_10_1: Ref
+  var c_3_1: Ref
+  var arg_36: Ref
+  var arg_13_1: Ref
+  var arg_14_1: Ref
+  var _res_0_1: Ref
+  var error_1_0_1: Ref
+  var try_finally_4_0_1: Int
+  var error_2_0_1: Ref
+  var try_finally_5_0_1: Int
+  var MySpecialException_res_12: Ref
+  var MyOtherException_res_6: Ref
+  var MySpecialException_res_0_1: Ref
+  var expr_res_6: Ref
+  var arg_37: Ref
+  var arg_38: Ref
+  var arg_39: Ref
+  var _res_9: Ref
+  var error_1_5: Ref
+  var try_finally_4_5: Int
+  var error_2_5: Ref
+  var try_finally_5_5: Int
+  var self_12_3: Ref
+  var c1_0_3: Ref
+  var b_0_3: Ref
+  var MySpecialException_res_3_3: Ref
+  var MyOtherException_res_1_3: Ref
+  var MySpecialException_res_4_3: Ref
+  var MySpecialException_res_13: Ref
+  var MyOtherException_res_7: Ref
+  var MySpecialException_res_14: Ref
+  var expr_res_7: Ref
+  var expr_res_8: Ref
+  var _cwl_152: Perm
+  var _method_measures_152: Seq[Measure$]
+  _method_measures_152 := Seq[Measure$]()
+  inhale typeof(self_6) == Sub()
+  _res := null
+  _err := null
+  self_14 := self_6
+  ca_2 := ca_0
+  cb_2 := cb_0
+  try_finally_8 := 0
+  arg_29 := self_14
+  arg_30 := ca_2
+  arg_31 := __prim__bool___box__(false)
+  try_finally_4_4 := 0
+  if (bool___unbox__(arg_31)) {
+    MySpecialException_res_10 := new()
+    inhale typeof(MySpecialException_res_10) == MySpecialException()
+    error_1_4 := MySpecialException_res_10
+    if (error_1_4 != null) {
+      if (issubtype(typeof(error_1_4), MyException())) {
+        goto handlerMyException_4
+      } else {
+        error_5 := error_1_4
+        goto __end_6
+      }
+    }
+  }
+  label post_try_1_4
+  try_finally_5_4 := 0
+  if (bool___unbox__(arg_31)) {
+    MyOtherException_res_5 := new()
+    inhale typeof(MyOtherException_res_5) == MyOtherException()
+    error_2_4 := MyOtherException_res_5
+    if (error_2_4 != null) {
+      try_finally_5_4 := 2
+      goto try_finally_1_4
+    }
+  } else {
+    MySpecialException_res_11 := new()
+    inhale typeof(MySpecialException_res_11) == MySpecialException()
+    error_2_4 := MySpecialException_res_11
+    if (error_2_4 != null) {
+      try_finally_5_4 := 2
+      goto try_finally_1_4
+    }
+  }
+  goto try_finally_1_4
+  label post_try_2_4
+  label __end_6
+  if (error_5 != null) {
+    if (issubtype(typeof(error_5), MySpecialException())) {
+      goto handlerMySpecialException_2
+    } else {
+      exhale false
+      goto __end
+    }
+  }
+  expr_res_5 := _res_6
+  label post_try_5
+  arg_32 := self_14
+  arg_33 := ca_2
+  _res_7 := arg_33.Container_value
+  goto __end_7
+  label __end_7
+  loc_0 := _res_7
+  inhale _isDefined(3436730187530408084)
+  assert int___eq__(_checkDefined(loc_0, 3436730187530408084), __prim__int___box__(77))
+  try_finally_9 := 0
+  arg_34 := self_14
+  arg_35 := cb_2
+  try_finally_2_1 := 0
+  arg_37 := arg_34
+  arg_38 := arg_35
+  arg_39 := __prim__bool___box__(true)
+  try_finally_4_5 := 0
+  if (bool___unbox__(arg_39)) {
+    MySpecialException_res_13 := new()
+    inhale typeof(MySpecialException_res_13) == MySpecialException()
+    error_1_5 := MySpecialException_res_13
+    if (error_1_5 != null) {
+      if (issubtype(typeof(error_1_5), MyException())) {
+        goto handlerMyException_5
+      } else {
+        error_10 := error_1_5
+        goto __end_9
+      }
+    }
+  }
+  label post_try_1_5
+  try_finally_5_5 := 0
+  if (bool___unbox__(arg_39)) {
+    MyOtherException_res_7 := new()
+    inhale typeof(MyOtherException_res_7) == MyOtherException()
+    error_2_5 := MyOtherException_res_7
+    if (error_2_5 != null) {
+      try_finally_5_5 := 2
+      goto try_finally_1_5
+    }
+  } else {
+    MySpecialException_res_14 := new()
+    inhale typeof(MySpecialException_res_14) == MySpecialException()
+    error_2_5 := MySpecialException_res_14
+    if (error_2_5 != null) {
+      try_finally_5_5 := 2
+      goto try_finally_1_5
+    }
+  }
+  goto try_finally_1_5
+  label post_try_2_5
+  label __end_9
+  if (error_10 != null) {
+    if (issubtype(typeof(error_10), MySpecialException())) {
+      goto handlerMySpecialException_4
+    } else {
+      try_finally_2_1 := 2
+      goto try_finally_11
+    }
+  }
+  expr_res_7 := _res_9
+  goto try_finally_11
+  label post_try_8
+  label __end_8
+  if (error_6 != null) {
+    if (issubtype(typeof(error_6), MyOtherException())) {
+      goto handlerMyOtherException_0
+    } else {
+      exhale false
+      goto __end
+    }
+  }
+  expr_res_8 := _res_8
+  label post_try_6
+  _res := cb_2
+  goto __end
+  goto __end
+  label handlerMySpecialException_2
+  if (perm(_MaySet(ca_2, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(ca_2, 12015246693702276493947828542597337277), write)
+    inhale acc(ca_2.Container_value, write)
+  }
+  ca_2.Container_value := __prim__int___box__(77)
+  goto post_try_5
+  label handlerMyOtherException_0
+  if (perm(_MaySet(cb_2, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(cb_2, 12015246693702276493947828542597337277), write)
+    inhale acc(cb_2.Container_value, write)
+  }
+  cb_2.Container_value := __prim__int___box__(int___add__(int___unbox__(cb_2.Container_value), 9))
+  goto post_try_6
+  label handlerMyException_4
+  if (perm(_MaySet(arg_38, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_38, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_38.Container_value, write)
+  }
+  arg_38.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_38.Container_value), 5))
+  goto post_try_1_4
+  label try_finally_1_4
+  if (perm(_MaySet(arg_30, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_30, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_30.Container_value, write)
+  }
+  arg_30.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_30.Container_value), 7))
+  if (try_finally_5_4 > 1) {
+    error_5 := error_2_4
+    goto __end_6
+  } elseif (try_finally_5_4 > 0) {
+    goto __end_6
+  } else {
+    goto post_try_2_4
+  }
+  label handlerMySpecialException_4
+  assert false
+  try_finally_2_1 := 0
+  goto try_finally_11
+  label try_finally_11
+  if (perm(_MaySet(arg_35, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_35, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_35.Container_value, write)
+  }
+  arg_35.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_35.Container_value), 3))
+  if (try_finally_2_1 > 1) {
+    error_6 := error_10
+    goto __end_8
+  } elseif (try_finally_2_1 > 0) {
+    goto __end_8
+  } else {
+    goto post_try_8
+  }
+  label handlerMyException_5
+  if (perm(_MaySet(arg_38, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_38, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_38.Container_value, write)
+  }
+  arg_38.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_38.Container_value), 5))
+  goto post_try_1_5
+  label try_finally_1_5
+  if (perm(_MaySet(arg_38, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_38, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_38.Container_value, write)
+  }
+  arg_38.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_38.Container_value), 7))
+  if (try_finally_5_5 > 1) {
+    error_10 := error_2_5
+    goto __end_9
+  } elseif (try_finally_5_5 > 0) {
+    goto __end_9
+  } else {
+    goto post_try_2_5
+  }
+  label __end
+}
+
+method Sub_some_func_2_inherit_check(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, self_3: Ref, c_1: Ref) returns (_current_wait_level_149: Perm, _res: Ref, _err: Ref)
+  requires _cthread_149 != null
+  requires issubtype(typeof(_cthread_149), Thread_0())
+  requires self_3 != null
+  requires typeof(self_3) == Sub()
+  requires issubtype(typeof(self_3), Super())
+  requires issubtype(typeof(c_1), Container())
+  requires self_3 != null
+  requires acc(c_1.Container_value, write) && issubtype(typeof(c_1.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_149)) == none && ((forperm _r_25: Ref [MustInvokeBounded(_r_25)] :: false) && ((forperm _r_25: Ref [MustInvokeUnbounded(_r_25)] :: false) && ((forperm _r_25: Ref [_r_25.MustReleaseBounded] :: false) && (forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_23: Ref [_r_23.MustReleaseBounded] :: Level(_r_23) <= _current_wait_level_149) && ((forperm _r_23: Ref [_r_23.MustReleaseUnbounded] :: Level(_r_23) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  ensures _err == null ==> issubtype(typeof(_res), int())
+  ensures _err == null ==> false
+  ensures _err != null && issubtype(typeof(_err), MySpecialException()) ==> acc(c_1.Container_value, write) && issubtype(typeof(c_1.Container_value), int()) && int___eq__(c_1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c_1.Container_value)), 15)))
+  ensures _err != null ==> issubtype(typeof(_err), MySpecialException())
+  ensures [true, (forperm _r_24: Ref [MustInvokeBounded(_r_24)] :: false) && ((forperm _r_24: Ref [MustInvokeUnbounded(_r_24)] :: false) && ((forperm _r_24: Ref [_r_24.MustReleaseBounded] :: false) && (forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: false)))]
+{
+  var error_2_1_0: Ref
+  var try_finally_5_1_0: Int
+  var error_0_0: Ref
+  var arg_40: Ref
+  var MySpecialException_res_1_0: Ref
+  var MyOtherException_res_0_0: Ref
+  var MySpecialException_res_15: Ref
+  var arg_42: Ref
+  var MySpecialException_res_2_0: Ref
+  var self_11_0: Ref
+  var arg_41: Ref
+  var expr_res_0_0: Ref
+  var MySpecialException_res_16: Ref
+  var try_finally_3_0: Int
+  var MySpecialException_res_3_4: Ref
+  var c_4_0: Ref
+  var error_1_1_0: Ref
+  var error_1_6: Ref
+  var _res_10: Ref
+  var arg_15_0: Ref
+  var arg_16_0: Ref
+  var try_finally_4_6: Int
+  var c1_0_4: Ref
+  var b_0_4: Ref
+  var arg_17_0: Ref
+  var error_2_6: Ref
+  var try_finally_5_6: Int
+  var _res_1_0: Ref
+  var self_12_4: Ref
+  var MySpecialException_res_4_4: Ref
+  var MyOtherException_res_1_4: Ref
+  var MyOtherException_res_8: Ref
+  var try_finally_4_1_0: Int
+  var expr_res_9: Ref
+  var _cwl_149: Perm
+  var _method_measures_149: Seq[Measure$]
+  _method_measures_149 := Seq[Measure$]()
+  try_finally_3_0 := 0
+  arg_40 := self_3
+  arg_41 := c_1
+  arg_42 := __prim__bool___box__(true)
+  try_finally_4_6 := 0
+  if (bool___unbox__(arg_42)) {
+    MySpecialException_res_15 := new()
+    inhale typeof(MySpecialException_res_15) == MySpecialException()
+    error_1_6 := MySpecialException_res_15
+    if (error_1_6 != null) {
+      if (issubtype(typeof(error_1_6), MyException())) {
+        goto handlerMyException_6
+      } else {
+        error_0_0 := error_1_6
+        goto __end_11
+      }
+    }
+  }
+  label post_try_1_6
+  try_finally_5_6 := 0
+  if (bool___unbox__(arg_42)) {
+    MyOtherException_res_8 := new()
+    inhale typeof(MyOtherException_res_8) == MyOtherException()
+    error_2_6 := MyOtherException_res_8
+    if (error_2_6 != null) {
+      try_finally_5_6 := 2
+      goto try_finally_1_6
+    }
+  } else {
+    MySpecialException_res_16 := new()
+    inhale typeof(MySpecialException_res_16) == MySpecialException()
+    error_2_6 := MySpecialException_res_16
+    if (error_2_6 != null) {
+      try_finally_5_6 := 2
+      goto try_finally_1_6
+    }
+  }
+  goto try_finally_1_6
+  label post_try_2_6
+  label __end_11
+  if (error_0_0 != null) {
+    if (issubtype(typeof(error_0_0), MySpecialException())) {
+      goto handlerMySpecialException_0_0
+    } else {
+      try_finally_3_0 := 2
+      goto try_finally_0_0
+    }
+  }
+  expr_res_9 := _res_10
+  goto try_finally_0_0
+  label post_try_0_0
+  goto __end_10
+  label handlerMySpecialException_0_0
+  assert false
+  try_finally_3_0 := 0
+  goto try_finally_0_0
+  label try_finally_0_0
+  if (perm(_MaySet(c_1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c_1, 12015246693702276493947828542597337277), write)
+    inhale acc(c_1.Container_value, write)
+  }
+  c_1.Container_value := __prim__int___box__(int___add__(int___unbox__(c_1.Container_value), 3))
+  if (try_finally_3_0 > 1) {
+    _err := error_0_0
+    goto __end_10
+  } elseif (try_finally_3_0 > 0) {
+    goto __end_10
+  } else {
+    goto post_try_0_0
+  }
+  label handlerMyException_6
+  if (perm(_MaySet(arg_41, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_41, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_41.Container_value, write)
+  }
+  arg_41.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_41.Container_value), 5))
+  goto post_try_1_6
+  label try_finally_1_6
+  if (perm(_MaySet(arg_41, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_41, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_41.Container_value, write)
+  }
+  arg_41.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_41.Container_value), 7))
+  if (try_finally_5_6 > 1) {
+    error_0_0 := error_2_6
+    goto __end_11
+  } elseif (try_finally_5_6 > 0) {
+    goto __end_11
+  } else {
+    goto post_try_2_6
+  }
+  label __end_10
+}
+
+method Sub_other_func_inherit_check(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, self_4: Ref, c1: Ref, b: Ref) returns (_current_wait_level_150: Perm, _res: Ref, _err: Ref)
+  requires _cthread_150 != null
+  requires issubtype(typeof(_cthread_150), Thread_0())
+  requires self_4 != null
+  requires typeof(self_4) == Sub()
+  requires issubtype(typeof(self_4), Super())
+  requires issubtype(typeof(c1), Container())
+  requires issubtype(typeof(b), bool())
+  requires self_4 != null
+  requires acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_150)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_26: Ref [_r_26.MustReleaseBounded] :: Level(_r_26) <= _current_wait_level_150) && ((forperm _r_26: Ref [_r_26.MustReleaseUnbounded] :: Level(_r_26) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  ensures _err == null ==> issubtype(typeof(_res), bool())
+  ensures _err == null ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(99))
+  ensures _err != null && issubtype(typeof(_err), MyOtherException()) ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c1.Container_value)), 12)))
+  ensures _err != null && issubtype(typeof(_err), MySpecialException()) ==> acc(c1.Container_value, write) && issubtype(typeof(c1.Container_value), int()) && int___eq__(c1.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c1.Container_value)), 7)))
+  ensures _err != null ==> issubtype(typeof(_err), MyOtherException()) || issubtype(typeof(_err), MySpecialException())
+  ensures [true, (forperm _r_27: Ref [MustInvokeBounded(_r_27)] :: false) && ((forperm _r_27: Ref [MustInvokeUnbounded(_r_27)] :: false) && ((forperm _r_27: Ref [_r_27.MustReleaseBounded] :: false) && (forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: false)))]
+{
+  var MySpecialException_res_17: Ref
+  var error_2_7: Ref
+  var self_12_5: Ref
+  var try_finally_4_7: Int
+  var error_1_7: Ref
+  var MySpecialException_res_18: Ref
+  var c1_0_5: Ref
+  var MyOtherException_res_9: Ref
+  var MySpecialException_res_4_5: Ref
+  var MyOtherException_res_1_5: Ref
+  var b_0_5: Ref
+  var MySpecialException_res_3_5: Ref
+  var try_finally_5_7: Int
+  var _cwl_150: Perm
+  var _method_measures_150: Seq[Measure$]
+  _method_measures_150 := Seq[Measure$]()
+  try_finally_4_7 := 0
+  if (bool___unbox__(b)) {
+    MySpecialException_res_17 := new()
+    inhale typeof(MySpecialException_res_17) == MySpecialException()
+    error_1_7 := MySpecialException_res_17
+    if (error_1_7 != null) {
+      if (issubtype(typeof(error_1_7), MyException())) {
+        goto handlerMyException_7
+      } else {
+        _err := error_1_7
+        goto __end_12
+      }
+    }
+  }
+  label post_try_1_7
+  try_finally_5_7 := 0
+  if (bool___unbox__(b)) {
+    MyOtherException_res_9 := new()
+    inhale typeof(MyOtherException_res_9) == MyOtherException()
+    error_2_7 := MyOtherException_res_9
+    if (error_2_7 != null) {
+      try_finally_5_7 := 2
+      goto try_finally_1_7
+    }
+  } else {
+    MySpecialException_res_18 := new()
+    inhale typeof(MySpecialException_res_18) == MySpecialException()
+    error_2_7 := MySpecialException_res_18
+    if (error_2_7 != null) {
+      try_finally_5_7 := 2
+      goto try_finally_1_7
+    }
+  }
+  goto try_finally_1_7
+  label post_try_2_7
+  goto __end_12
+  label handlerMyException_7
+  if (perm(_MaySet(c1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c1, 12015246693702276493947828542597337277), write)
+    inhale acc(c1.Container_value, write)
+  }
+  c1.Container_value := __prim__int___box__(int___add__(int___unbox__(c1.Container_value), 5))
+  goto post_try_1_7
+  label try_finally_1_7
+  if (perm(_MaySet(c1, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c1, 12015246693702276493947828542597337277), write)
+    inhale acc(c1.Container_value, write)
+  }
+  c1.Container_value := __prim__int___box__(int___add__(int___unbox__(c1.Container_value), 7))
+  if (try_finally_5_7 > 1) {
+    _err := error_2_7
+    goto __end_12
+  } elseif (try_finally_5_7 > 0) {
+    goto __end_12
+  } else {
+    goto post_try_2_7
+  }
+  label __end_12
+}
+
+method Sub_return_func_inherit_check(_cthread_147: Ref, _caller_measures_147: Seq[Measure$], _residue_147: Perm, self_1: Ref, c: Ref) returns (_current_wait_level_147: Perm, _res: Ref)
+  requires _cthread_147 != null
+  requires issubtype(typeof(_cthread_147), Thread_0())
+  requires self_1 != null
+  requires typeof(self_1) == Sub()
+  requires issubtype(typeof(self_1), Super())
+  requires issubtype(typeof(c), Container())
+  requires self_1 != null
+  requires acc(c.Container_value, write) && issubtype(typeof(c.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_147)) == none && ((forperm _r_31: Ref [MustInvokeBounded(_r_31)] :: false) && ((forperm _r_31: Ref [MustInvokeUnbounded(_r_31)] :: false) && ((forperm _r_31: Ref [_r_31.MustReleaseBounded] :: false) && (forperm _r_31: Ref [_r_31.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_29: Ref [_r_29.MustReleaseBounded] :: Level(_r_29) <= _current_wait_level_147) && ((forperm _r_29: Ref [_r_29.MustReleaseUnbounded] :: Level(_r_29) <= _current_wait_level_147) && _residue_147 <= _current_wait_level_147), true]
+  ensures issubtype(typeof(_res), int())
+  ensures acc(c.Container_value, write) && issubtype(typeof(c.Container_value), int()) && int___eq__(_res, c.Container_value)
+  ensures [true, (forperm _r_30: Ref [MustInvokeBounded(_r_30)] :: false) && ((forperm _r_30: Ref [MustInvokeUnbounded(_r_30)] :: false) && ((forperm _r_30: Ref [_r_30.MustReleaseBounded] :: false) && (forperm _r_30: Ref [_r_30.MustReleaseUnbounded] :: false)))]
+{
+  var c_2_2: Ref
+  var self_9_2: Ref
+  var _cwl_147: Perm
+  var _method_measures_147: Seq[Measure$]
+  _method_measures_147 := Seq[Measure$]()
+  _res := c.Container_value
+  goto __end_13
+  goto __end_13
+  label __end_13
+}
+
+method Sub_some_func_inherit_check(_cthread_148: Ref, _caller_measures_148: Seq[Measure$], _residue_148: Perm, self_2: Ref, c_0: Ref) returns (_current_wait_level_148: Perm, _res: Ref, _err: Ref)
+  requires _cthread_148 != null
+  requires issubtype(typeof(_cthread_148), Thread_0())
+  requires self_2 != null
+  requires typeof(self_2) == Sub()
+  requires issubtype(typeof(self_2), Super())
+  requires issubtype(typeof(c_0), Container())
+  requires self_2 != null
+  requires acc(c_0.Container_value, write) && issubtype(typeof(c_0.Container_value), int())
+  requires [true, perm(MustTerminate(_cthread_148)) == none && ((forperm _r_34: Ref [MustInvokeBounded(_r_34)] :: false) && ((forperm _r_34: Ref [MustInvokeUnbounded(_r_34)] :: false) && ((forperm _r_34: Ref [_r_34.MustReleaseBounded] :: false) && (forperm _r_34: Ref [_r_34.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_32: Ref [_r_32.MustReleaseBounded] :: Level(_r_32) <= _current_wait_level_148) && ((forperm _r_32: Ref [_r_32.MustReleaseUnbounded] :: Level(_r_32) <= _current_wait_level_148) && _residue_148 <= _current_wait_level_148), true]
+  ensures _err == null ==> issubtype(typeof(_res), int())
+  ensures _err == null ==> false
+  ensures _err != null && issubtype(typeof(_err), MyOtherException()) ==> acc(c_0.Container_value, write) && issubtype(typeof(c_0.Container_value), int()) && int___eq__(c_0.Container_value, __prim__int___box__(int___add__(int___unbox__(old(c_0.Container_value)), 15)))
+  ensures _err != null ==> issubtype(typeof(_err), MyOtherException())
+  ensures [true, (forperm _r_33: Ref [MustInvokeBounded(_r_33)] :: false) && ((forperm _r_33: Ref [MustInvokeUnbounded(_r_33)] :: false) && ((forperm _r_33: Ref [_r_33.MustReleaseBounded] :: false) && (forperm _r_33: Ref [_r_33.MustReleaseUnbounded] :: false)))]
+{
+  var error_2_7_0: Ref
+  var try_finally_5_7_0: Int
+  var self_12_5_0: Ref
+  var c1_0_5_0: Ref
+  var b_0_5_0: Ref
+  var expr_res_11: Ref
+  var MySpecialException_res_3_5_0: Ref
+  var self_10_2: Ref
+  var arg_44: Ref
+  var MyOtherException_res_1_5_0: Ref
+  var MySpecialException_res_4_5_0: Ref
+  var _res_11: Ref
+  var arg_46: Ref
+  var MySpecialException_res_17_0: Ref
+  var try_finally_4_7_0: Int
+  var error_11: Ref
+  var arg_45: Ref
+  var MyOtherException_res_9_0: Ref
+  var try_finally_2_2: Int
+  var MySpecialException_res_18_0: Ref
+  var MySpecialException_res_21: Ref
+  var c_3_2: Ref
+  var arg_43: Ref
+  var error_1_8: Ref
+  var error_1_0_2: Ref
+  var try_finally_4_8: Int
+  var arg_13_2: Ref
+  var error_2_8: Ref
+  var arg_14_2: Ref
+  var try_finally_5_8: Int
+  var _res_0_2: Ref
+  var self_12_6: Ref
+  var MySpecialException_res_20: Ref
+  var try_finally_4_0_2: Int
+  var c1_0_6: Ref
+  var error_2_0_2: Ref
+  var try_finally_5_0_2: Int
+  var MySpecialException_res_19: Ref
+  var b_0_6: Ref
+  var MyOtherException_res_10: Ref
+  var MySpecialException_res_3_6: Ref
+  var MyOtherException_res_11: Ref
+  var MyOtherException_res_1_6: Ref
+  var MySpecialException_res_4_6: Ref
+  var MySpecialException_res_0_2: Ref
+  var expr_res_10: Ref
+  var error_1_7_0: Ref
+  var _cwl_148: Perm
+  var _method_measures_148: Seq[Measure$]
+  _method_measures_148 := Seq[Measure$]()
+  try_finally_2_2 := 0
+  arg_44 := self_2
+  arg_45 := c_0
+  arg_46 := __prim__bool___box__(true)
+  try_finally_4_8 := 0
+  if (bool___unbox__(arg_46)) {
+    MySpecialException_res_20 := new()
+    inhale typeof(MySpecialException_res_20) == MySpecialException()
+    error_1_8 := MySpecialException_res_20
+    if (error_1_8 != null) {
+      if (issubtype(typeof(error_1_8), MyException())) {
+        goto handlerMyException_8
+      } else {
+        error_11 := error_1_8
+        goto __end_15
+      }
+    }
+  }
+  label post_try_1_8
+  try_finally_5_8 := 0
+  if (bool___unbox__(arg_46)) {
+    MyOtherException_res_11 := new()
+    inhale typeof(MyOtherException_res_11) == MyOtherException()
+    error_2_8 := MyOtherException_res_11
+    if (error_2_8 != null) {
+      try_finally_5_8 := 2
+      goto try_finally_1_8
+    }
+  } else {
+    MySpecialException_res_21 := new()
+    inhale typeof(MySpecialException_res_21) == MySpecialException()
+    error_2_8 := MySpecialException_res_21
+    if (error_2_8 != null) {
+      try_finally_5_8 := 2
+      goto try_finally_1_8
+    }
+  }
+  goto try_finally_1_8
+  label post_try_2_8
+  label __end_15
+  if (error_11 != null) {
+    if (issubtype(typeof(error_11), MySpecialException())) {
+      goto handlerMySpecialException_5
+    } else {
+      try_finally_2_2 := 2
+      goto try_finally_12
+    }
+  }
+  expr_res_11 := _res_11
+  goto try_finally_12
+  label post_try_9
+  goto __end_14
+  label handlerMySpecialException_5
+  assert false
+  try_finally_2_2 := 0
+  goto try_finally_12
+  label try_finally_12
+  if (perm(_MaySet(c_0, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(c_0, 12015246693702276493947828542597337277), write)
+    inhale acc(c_0.Container_value, write)
+  }
+  c_0.Container_value := __prim__int___box__(int___add__(int___unbox__(c_0.Container_value), 3))
+  if (try_finally_2_2 > 1) {
+    _err := error_11
+    goto __end_14
+  } elseif (try_finally_2_2 > 0) {
+    goto __end_14
+  } else {
+    goto post_try_9
+  }
+  label handlerMyException_8
+  if (perm(_MaySet(arg_45, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_45, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_45.Container_value, write)
+  }
+  arg_45.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_45.Container_value), 5))
+  goto post_try_1_8
+  label try_finally_1_8
+  if (perm(_MaySet(arg_45, 12015246693702276493947828542597337277)) > none) {
+    exhale acc(_MaySet(arg_45, 12015246693702276493947828542597337277), write)
+    inhale acc(arg_45.Container_value, write)
+  }
+  arg_45.Container_value := __prim__int___box__(int___add__(int___unbox__(arg_45.Container_value), 7))
+  if (try_finally_5_8 > 1) {
+    error_11 := error_2_8
+    goto __end_15
+  } elseif (try_finally_5_8 > 0) {
+    goto __end_15
+  } else {
+    goto post_try_2_8
+  }
+  label __end_14
+}
+
+method main(_cthread_153: Ref, _caller_measures_153: Seq[Measure$], _residue_153: Perm) returns (_current_wait_level_153: Perm)
+  requires _cthread_153 != null
+  requires issubtype(typeof(_cthread_153), Thread_0())
+  requires [true, perm(MustTerminate(_cthread_153)) == none && ((forperm _r_37: Ref [MustInvokeBounded(_r_37)] :: false) && ((forperm _r_37: Ref [MustInvokeUnbounded(_r_37)] :: false) && ((forperm _r_37: Ref [_r_37.MustReleaseBounded] :: false) && (forperm _r_37: Ref [_r_37.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_35: Ref [_r_35.MustReleaseBounded] :: Level(_r_35) <= _current_wait_level_153) && ((forperm _r_35: Ref [_r_35.MustReleaseUnbounded] :: Level(_r_35) <= _current_wait_level_153) && _residue_153 <= _current_wait_level_153), true]
+  ensures [true, (forperm _r_36: Ref [MustInvokeBounded(_r_36)] :: false) && ((forperm _r_36: Ref [MustInvokeUnbounded(_r_36)] :: false) && ((forperm _r_36: Ref [_r_36.MustReleaseBounded] :: false) && (forperm _r_36: Ref [_r_36.MustReleaseUnbounded] :: false)))]
+{
+  var module_defined_0: Bool
+  var module_names_0: Set[_Name]
+  var _cwl_153: Perm
+  var _method_measures_153: Seq[Measure$]
+  _method_measures_153 := Seq[Measure$]()
+  module_defined_0 := true
+  module_names_0 := Set[_Name]()
+  module_names_0 := (module_names_0 union Set(_single(3106082509126931487350218591)))
+  inhale acc(__file__()._val, 99 / 100) && issubtype(typeof(__file__()._val), str()) && issubtype(typeof(__file__()._val), str())
+  module_names_0 := (module_names_0 union Set(_single(2489530350921051593165922143)))
+  inhale acc(__name__()._val, 99 / 100) && issubtype(typeof(__name__()._val), str()) && issubtype(typeof(__name__()._val), str()) && str___eq__(str___create__(8, 2489249333222104298408468319), __name__()._val)
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(7650084617053181585792530765)))
+  assert true
+  assert true && (_single(7650084617053181585792530765) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(4529489975151004560291180452861127971380099405)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(18650553436721731597269368430015174631889008973)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(3493880855485680332086796127)))
+  module_names_0 := (module_names_0 union Set(_single(89925813823691351000732147874119307868213381424594394800)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(3493880855485680332086796127)))
+  module_names_0 := (module_names_0 union Set(_single(4897136316197950463415316291)))
+  assert true && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(5242200063846458462339097970)))
+  module_names_0 := (module_names_0 union Set(_single(5133171925571666025552637811)))
+  module_names_0 := (module_names_0 union Set(_single(5194066841368270100583247731)))
+  module_names_0 := (module_names_0 union Set(_single(6206248607194701312188511343)))
+  module_names_0 := (module_names_0 union Set(_single(3654736085206928045)))
+  assert true && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0) && (_single(4897136316197950463415316291) in module_names_0)
+  assert true && (_single(3654736085206928045) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(13582413213547545923545067154042818701)))
+  module_names_0 := (module_names_0 union Set(_single(26313532041799263496682557619323309530709716851)))
+  module_names_0 := (module_names_0 union Set(_single(6452563)))
+  goto __end
+  label __end
+}

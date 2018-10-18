@@ -1,0 +1,1739 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function Place(): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function set_basic(): PyType
+  
+  function set(arg0: PyType): PyType
+  
+  function set_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function traceback(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function Sequence_basic(): PyType
+  
+  function Sequence(arg0: PyType): PyType
+  
+  function Sequence_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function slice(): PyType
+  
+  unique function range(): PyType
+  
+  unique function Iterator_basic(): PyType
+  
+  function Iterator(arg0: PyType): PyType
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function LevelType(): PyType
+  
+  unique function type(): PyType
+  
+  unique function __prim__Sequence_type(): PyType
+  
+  unique function ListClass(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType :: { set(var0) } extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) && get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_Sequence {
+    (forall var0: PyType :: { Sequence(var0) } extends_(Sequence(var0), object()) && get_basic(Sequence(var0)) == Sequence_basic())
+  }
+  
+  axiom Sequence_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Sequence(arg0)) ==> Sequence_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range {
+    extends_(range(), object()) && get_basic(range()) == range()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType :: { Iterator(var0) } extends_(Iterator(var0), object()) && get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype___prim__Sequence_type {
+    extends_(__prim__Sequence_type(), object()) && get_basic(__prim__Sequence_type()) == __prim__Sequence_type()
+  }
+  
+  axiom subtype_ListClass {
+    extends_(ListClass(), object()) && get_basic(ListClass()) == ListClass()
+  }
+}
+
+domain Thread {
+  
+  function getMethod(t: Ref): ThreadingID
+  
+  function getMethod_0(t: Ref): ThreadingID
+  
+  function getArg(t: Ref, i: Int): Ref
+  
+  function getArg_0(t: Ref, i: Int): Ref
+  
+  function getOld(t: Ref, i: Int): Ref
+  
+  function getOld_0(t: Ref, i: Int): Ref
+}
+
+domain Function {
+  
+  unique function getVal_0(): Function
+  
+  unique function size_0(): Function
+}
+
+domain ThreadingID {
+  
+  unique function __init___threading(): ThreadingID
+  
+  unique function append_threading(): ThreadingID
+  
+  unique function extend_threading(): ThreadingID
+  
+  unique function reverse_threading(): ThreadingID
+  
+  unique function __setitem___threading(): ThreadingID
+  
+  unique function __iter___threading(): ThreadingID
+  
+  unique function __getitem_slice___threading(): ThreadingID
+  
+  unique function __add___threading(): ThreadingID
+  
+  unique function __mul___threading(): ThreadingID
+  
+  unique function __init___threading_0(): ThreadingID
+  
+  unique function add_threading(): ThreadingID
+  
+  unique function remove_threading(): ThreadingID
+  
+  unique function clear_threading(): ThreadingID
+  
+  unique function __iter___threading_0(): ThreadingID
+  
+  unique function __init___threading_1(): ThreadingID
+  
+  unique function keys_threading(): ThreadingID
+  
+  unique function __setitem___threading_0(): ThreadingID
+  
+  unique function __iter___threading_1(): ThreadingID
+  
+  unique function values_threading(): ThreadingID
+  
+  unique function split_threading(): ThreadingID
+  
+  unique function __iter___threading_2(): ThreadingID
+  
+  unique function __next___threading(): ThreadingID
+  
+  unique function __del___threading(): ThreadingID
+  
+  unique function setValMethod_threading(): ThreadingID
+  
+  unique function setValMethod2_threading(): ThreadingID
+  
+  unique function unfold_fail_threading(): ThreadingID
+  
+  unique function m1_threading(): ThreadingID
+  
+  unique function getHead_threading(): ThreadingID
+  
+  unique function contains_threading(): ThreadingID
+  
+  unique function __init___threading_2(): ThreadingID
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain _Name {
+  
+  function _combine(n1: _Name, n2: _Name): _Name
+  
+  function _single(n: Int): _Name
+  
+  function _get_combined_prefix(n: _Name): _Name
+  
+  function _get_combined_name(n: _Name): _Name
+  
+  function _get_value(n: _Name): Int
+  
+  function _is_single(n: _Name): Bool
+  
+  axiom all_single_or_combined {
+    (forall n: _Name :: n == _single(_get_value(n)) || n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom single_is_single {
+    (forall i: Int :: { _single(i) } _is_single(_single(i)))
+  }
+  
+  axiom combined_is_not_single {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } !_is_single(_combine(n1, n2)))
+  }
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom decompose_combined_prefix {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_prefix(_combine(n1, n2)) == n1)
+  }
+  
+  axiom decompose_combined_name {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_name(_combine(n1, n2)) == n2)
+  }
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field dict_accp: Set[Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field ListClass_val: Ref
+
+field ListClass_valp: Ref
+
+field ListClass_next: Ref
+
+field ListClass_nextp: Ref
+
+function _joinable(t: Ref): Bool 
+
+
+function _isDefined(id: Int): Bool 
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id) 
+{
+  val
+}
+
+function _asserting(val: Ref, ass: Bool): Ref
+  requires ass 
+{
+  val
+}
+
+function _int_to_bool(i: Int): Bool 
+
+
+function getVal(l: Ref): Ref
+  requires issubtype(typeof(l), ListClass())
+  requires acc(accVal(l), write)
+  ensures issubtype(typeof(result), int()) 
+{
+  (unfolding acc(accVal(l), write) in l.ListClass_val)
+}
+
+function getVal_1(l: Ref): Ref
+  requires issubtype(typeof(l), ListClass())
+  requires acc(accVal_0(l), write)
+  ensures issubtype(typeof(result), int()) 
+{
+  (unfolding acc(accVal_0(l), write) in l.ListClass_valp)
+}
+
+function size(l_0: Ref): Ref
+  requires l_0 == null || issubtype(typeof(l_0), ListClass())
+  requires acc(MyList(l_0), write)
+  ensures issubtype(typeof(result), int())
+  ensures int___ge__(int___unbox__(result), 0) 
+{
+  (l_0 == null ? __prim__int___box__(0) : __prim__int___box__((unfolding acc(MyList(l_0), write) in int___add__(1, int___unbox__(size(l_0.ListClass_next))))))
+}
+
+function size_1(l_0: Ref): Ref
+  requires l_0 == null || issubtype(typeof(l_0), ListClass())
+  requires acc(MyList_0(l_0), write)
+  ensures issubtype(typeof(result), int())
+  ensures int___ge__(int___unbox__(result), 0) 
+{
+  (l_0 == null ? __prim__int___box__(0) : __prim__int___box__((unfolding acc(MyList_0(l_0), write) in int___add__(1, int___unbox__(size_1(l_0.ListClass_nextp))))))
+}
+
+function __file__(): Ref 
+
+
+function __name__(): Ref 
+
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+  ensures (forall other: Int :: { __prim__int___box__(other) } (__prim__int___box__(other) == result) == (other == prim)) 
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box 
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0) 
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box 
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int()) 
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool 
+{
+  self >= other
+}
+
+function int___gt__(self: Int, other: Int): Bool 
+{
+  self > other
+}
+
+function int___add__(self: Int, other: Int): Int 
+{
+  self + other
+}
+
+function int___mul__(self: Int, other: Int): Int 
+{
+  self * other
+}
+
+function Level(r: Ref): Perm 
+
+
+function str___len__(self: Ref): Int
+  ensures result >= 0 
+
+
+function str___val__(self: Ref): Int 
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str() 
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other) 
+
+
+function accVal_low(l_6: Ref, l_6_0: Ref): Bool
+  requires acc(accVal(l_6), wildcard) && acc(accVal_0(l_6_0), wildcard) 
+{
+  (unfolding acc(accVal(l_6), wildcard) in (unfolding acc(accVal_0(l_6_0), wildcard) in int___eq__(l_6.ListClass_val, l_6_0.ListClass_valp)))
+}
+
+function accVal_all_low(l_6: Ref, l_6_0: Ref): Bool
+  requires acc(accVal(l_6), wildcard) && acc(accVal_0(l_6_0), wildcard) 
+{
+  (unfolding acc(accVal(l_6), wildcard) in (unfolding acc(accVal_0(l_6_0), wildcard) in l_6.ListClass_val == l_6_0.ListClass_valp))
+}
+
+function MyList_all_low(l_7: Ref, l_7_0: Ref): Bool
+  requires acc(MyList(l_7), wildcard) && acc(MyList_0(l_7_0), wildcard) 
+{
+  (unfolding acc(MyList(l_7), wildcard) in (unfolding acc(MyList_0(l_7_0), wildcard) in l_7 != null && l_7_0 != null ==> l_7.ListClass_val == l_7_0.ListClass_valp && (l_7.ListClass_next == l_7_0.ListClass_nextp && MyList_all_low(l_7.ListClass_next, l_7_0.ListClass_nextp))))
+}
+
+function MyListLow_low(l_8: Ref, l_8_0: Ref): Bool
+  requires acc(MyListLow(l_8), wildcard) && acc(MyListLow_0(l_8_0), wildcard) 
+{
+  (unfolding acc(MyListLow(l_8), wildcard) in (unfolding acc(MyListLow_0(l_8_0), wildcard) in l_8 != null && l_8_0 != null ==> l_8.ListClass_val == l_8_0.ListClass_valp && (l_8.ListClass_next == l_8_0.ListClass_nextp && MyListLow_low(l_8.ListClass_next, l_8_0.ListClass_nextp))))
+}
+
+function MyListLow_all_low(l_8: Ref, l_8_0: Ref): Bool
+  requires acc(MyListLow(l_8), wildcard) && acc(MyListLow_0(l_8_0), wildcard) 
+{
+  (unfolding acc(MyListLow(l_8), wildcard) in (unfolding acc(MyListLow_0(l_8_0), wildcard) in l_8 != null && l_8_0 != null ==> l_8.ListClass_val == l_8_0.ListClass_valp && (l_8.ListClass_next == l_8_0.ListClass_nextp && MyListLow_all_low(l_8.ListClass_next, l_8_0.ListClass_nextp))))
+}
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustTerminate_0(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeBounded_0(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate MustInvokeUnbounded_0(r: Ref) 
+
+predicate MustInvokeCredit(r: Ref) 
+
+predicate MustInvokeCredit_0(r: Ref) 
+
+predicate _thread_start(t: Ref) 
+
+predicate _thread_start_0(t: Ref) 
+
+predicate _thread_post(t: Ref) 
+
+predicate _thread_post_0(t: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+predicate accVal(l_6: Ref) {
+  issubtype(typeof(l_6), ListClass()) && (acc(l_6.ListClass_val, write) && issubtype(typeof(l_6.ListClass_val), int()))
+}
+
+predicate accVal_0(l_6: Ref) {
+  issubtype(typeof(l_6), ListClass()) && (acc(l_6.ListClass_valp, write) && issubtype(typeof(l_6.ListClass_valp), int()))
+}
+
+predicate MyList(l_7: Ref) {
+  (l_7 == null || issubtype(typeof(l_7), ListClass())) && (l_7 != null ==> acc(l_7.ListClass_val, write) && issubtype(typeof(l_7.ListClass_val), int()) && (acc(l_7.ListClass_next, write) && (l_7.ListClass_next == null || issubtype(typeof(l_7.ListClass_next), ListClass())) && acc(MyList(l_7.ListClass_next), write)))
+}
+
+predicate MyList_0(l_7: Ref) {
+  (l_7 == null || issubtype(typeof(l_7), ListClass())) && (l_7 != null ==> acc(l_7.ListClass_valp, write) && issubtype(typeof(l_7.ListClass_valp), int()) && (acc(l_7.ListClass_nextp, write) && (l_7.ListClass_nextp == null || issubtype(typeof(l_7.ListClass_nextp), ListClass())) && acc(MyList_0(l_7.ListClass_nextp), write)))
+}
+
+predicate MyListLow(l_8: Ref) {
+  (l_8 == null || issubtype(typeof(l_8), ListClass())) && (l_8 != null ==> acc(l_8.ListClass_val, write) && issubtype(typeof(l_8.ListClass_val), int()) && (acc(l_8.ListClass_next, write) && (l_8.ListClass_next == null || issubtype(typeof(l_8.ListClass_next), ListClass())) && acc(MyListLow(l_8.ListClass_next), write)))
+}
+
+predicate MyListLow_0(l_8: Ref) {
+  (l_8 == null || issubtype(typeof(l_8), ListClass())) && (l_8 != null ==> acc(l_8.ListClass_valp, write) && issubtype(typeof(l_8.ListClass_valp), int()) && (acc(l_8.ListClass_nextp, write) && (l_8.ListClass_nextp == null || issubtype(typeof(l_8.ListClass_nextp), ListClass())) && acc(MyListLow_0(l_8.ListClass_nextp), write)))
+}
+
+method setValMethod(p1: Bool, p2: Bool, _cthread_148: Ref, _cthread_148_0: Ref, _caller_measures_148: Seq[Measure$], _caller_measures_148_0: Seq[Measure$], _residue_148: Perm, _residue_148_0: Perm, l_1: Ref, l_1_0: Ref, v_0: Ref, v_0_0: Ref) returns (_current_wait_level_148: Perm, _current_wait_level_148_0: Perm)
+  requires (p1 ==> _cthread_148 != null) && (p2 ==> _cthread_148_0 != null)
+  requires (p1 ==> issubtype(typeof(_cthread_148), Thread_0())) && (p2 ==> issubtype(typeof(_cthread_148_0), Thread_0()))
+  requires (p1 ==> issubtype(typeof(l_1), ListClass())) && (p2 ==> issubtype(typeof(l_1_0), ListClass()))
+  requires (p1 ==> issubtype(typeof(v_0), int())) && (p2 ==> issubtype(typeof(v_0_0), int()))
+  requires (p1 ==> acc(accVal(l_1), write)) && (p2 ==> acc(accVal_0(l_1_0), write)) && (p1 && p2 ==> accVal_low(l_1, l_1_0))
+  requires (p1 ==> [true, perm(MustTerminate(_cthread_148)) == none && ((forperm _r_1: Ref [MustInvokeBounded(_r_1)] :: false) && ((forperm _r_1: Ref [MustInvokeUnbounded(_r_1)] :: false) && ((forperm _r_1: Ref [_r_1.MustReleaseBounded] :: false) && (forperm _r_1: Ref [_r_1.MustReleaseUnbounded] :: false))))]) && (p2 ==> [true, perm(MustTerminate_0(_cthread_148_0)) == none && ((forperm _r_1: Ref [MustInvokeBounded_0(_r_1)] :: false) && ((forperm _r_1: Ref [MustInvokeUnbounded_0(_r_1)] :: false) && ((forperm _r_1: Ref [_r_1.MustReleaseBoundedp] :: false) && (forperm _r_1: Ref [_r_1.MustReleaseUnboundedp] :: false))))])
+  ensures (p1 ==> [(forperm _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _current_wait_level_148) && ((forperm _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _current_wait_level_148) && _residue_148 <= _current_wait_level_148), true]) && (p2 ==> [(forperm _r: Ref [_r.MustReleaseBoundedp] :: Level(_r) <= _current_wait_level_148_0) && ((forperm _r: Ref [_r.MustReleaseUnboundedp] :: Level(_r) <= _current_wait_level_148_0) && _residue_148_0 <= _current_wait_level_148_0), true])
+  ensures (p1 ==> acc(accVal(l_1), write)) && (p2 ==> acc(accVal_0(l_1_0), write)) && (p1 && p2 ==> accVal_low(l_1, l_1_0))
+  ensures (p1 ==> int___eq__(getVal(l_1), v_0)) && (p2 ==> int___eq__(getVal_1(l_1_0), v_0_0))
+  ensures (p1 ==> [true, (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) && ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) && ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) && (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))]) && (p2 ==> [true, (forperm _r_0: Ref [MustInvokeBounded_0(_r_0)] :: false) && ((forperm _r_0: Ref [MustInvokeUnbounded_0(_r_0)] :: false) && ((forperm _r_0: Ref [_r_0.MustReleaseBoundedp] :: false) && (forperm _r_0: Ref [_r_0.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1
+  var _err: Ref
+  var _err_0: Ref
+  var l_9: Ref
+  var l_9_0: Ref
+  var v_2: Ref
+  var v_2_0: Ref
+  var _cwl_148: Perm
+  var _cwl_148_0: Perm
+  var _method_measures_148: Seq[Measure$]
+  var _method_measures_148_0: Seq[Measure$]
+  if (p1) {
+    _method_measures_148 := Seq[Measure$]()
+    _err := null
+    l_9 := l_1
+    v_2 := v_0
+  }
+  if (p2) {
+    _method_measures_148_0 := Seq[Measure$]()
+    _err_0 := null
+    l_9_0 := l_1_0
+    v_2_0 := v_0_0
+  }
+  assert p1 && p2 ==> perm(accVal(l_9)) >= write && perm(accVal_0(l_9_0)) >= write ==> accVal_low(l_9, l_9_0)
+  if (p1) {
+    unfold acc(accVal(l_9), write)
+  }
+  if (p2) {
+    unfold acc(accVal_0(l_9_0), write)
+  }
+  var p1_0: Bool
+  var p2_0: Bool
+  var p3: Bool
+  var p4: Bool
+  p1_0 := p1 && perm(_MaySet(l_9, 16127119405273128440691731219438409396)) > none
+  p2_0 := p2 && perm(_MaySet_0(l_9_0, 16127119405273128440691731219438409396)) > none
+  p3 := p1 && !(perm(_MaySet(l_9, 16127119405273128440691731219438409396)) > none)
+  p4 := p2 && !(perm(_MaySet_0(l_9_0, 16127119405273128440691731219438409396)) > none)
+  if (p1_0) {
+    exhale acc(_MaySet(l_9, 16127119405273128440691731219438409396), write)
+    inhale acc(l_9.ListClass_val, write)
+  }
+  if (p2_0) {
+    exhale acc(_MaySet_0(l_9_0, 16127119405273128440691731219438409396), write)
+    inhale acc(l_9_0.ListClass_valp, write)
+  }
+  if (p1) {
+    l_9.ListClass_val := v_2
+  }
+  if (p2) {
+    l_9_0.ListClass_valp := v_2_0
+  }
+  if (p1) {
+    fold acc(accVal(l_9), write)
+  }
+  if (p2) {
+    fold acc(accVal_0(l_9_0), write)
+  }
+  assert p1 && p2 ==> accVal_low(l_9, l_9_0)
+  assert true
+}
+
+method setValMethod2(p1_1: Bool, p2_1: Bool, _cthread_149: Ref, _cthread_149_0: Ref, _caller_measures_149: Seq[Measure$], _caller_measures_149_0: Seq[Measure$], _residue_149: Perm, _residue_149_0: Perm, l_2: Ref, l_2_0: Ref, v_1: Ref, v_1_0: Ref) returns (_current_wait_level_149: Perm, _current_wait_level_149_0: Perm)
+  requires (p1_1 ==> _cthread_149 != null) && (p2_1 ==> _cthread_149_0 != null)
+  requires (p1_1 ==> issubtype(typeof(_cthread_149), Thread_0())) && (p2_1 ==> issubtype(typeof(_cthread_149_0), Thread_0()))
+  requires (p1_1 ==> issubtype(typeof(l_2), ListClass())) && (p2_1 ==> issubtype(typeof(l_2_0), ListClass()))
+  requires (p1_1 ==> issubtype(typeof(v_1), int())) && (p2_1 ==> issubtype(typeof(v_1_0), int()))
+  requires (p1_1 ==> acc(accVal(l_2), write)) && (p2_1 ==> acc(accVal_0(l_2_0), write)) && (p1_1 && p2_1 ==> accVal_low(l_2, l_2_0))
+  requires p1_1 && p2_1 ==> v_1 == v_1_0
+  requires (p1_1 ==> [true, perm(MustTerminate(_cthread_149)) == none && ((forperm _r_4: Ref [MustInvokeBounded(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBounded] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnbounded] :: false))))]) && (p2_1 ==> [true, perm(MustTerminate_0(_cthread_149_0)) == none && ((forperm _r_4: Ref [MustInvokeBounded_0(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded_0(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBoundedp] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_1 ==> [(forperm _r_2: Ref [_r_2.MustReleaseBounded] :: Level(_r_2) <= _current_wait_level_149) && ((forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: Level(_r_2) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]) && (p2_1 ==> [(forperm _r_2: Ref [_r_2.MustReleaseBoundedp] :: Level(_r_2) <= _current_wait_level_149_0) && ((forperm _r_2: Ref [_r_2.MustReleaseUnboundedp] :: Level(_r_2) <= _current_wait_level_149_0) && _residue_149_0 <= _current_wait_level_149_0), true])
+  ensures (p1_1 ==> acc(accVal(l_2), write)) && (p2_1 ==> acc(accVal_0(l_2_0), write)) && (p1_1 && p2_1 ==> accVal_low(l_2, l_2_0))
+  ensures (p1_1 ==> int___eq__(getVal(l_2), v_1)) && (p2_1 ==> int___eq__(getVal_1(l_2_0), v_1_0))
+  ensures (p1_1 ==> [true, (forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) && ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) && ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) && (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false)))]) && (p2_1 ==> [true, (forperm _r_3: Ref [MustInvokeBounded_0(_r_3)] :: false) && ((forperm _r_3: Ref [MustInvokeUnbounded_0(_r_3)] :: false) && ((forperm _r_3: Ref [_r_3.MustReleaseBoundedp] :: false) && (forperm _r_3: Ref [_r_3.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_1
+  var _err: Ref
+  var _err_1: Ref
+  var l_10: Ref
+  var l_10_0: Ref
+  var v_3: Ref
+  var v_3_0: Ref
+  var _cwl_149: Perm
+  var _cwl_149_0: Perm
+  var _method_measures_149: Seq[Measure$]
+  var _method_measures_149_0: Seq[Measure$]
+  if (p1_1) {
+    _method_measures_149 := Seq[Measure$]()
+    _err := null
+    l_10 := l_2
+    v_3 := v_1
+  }
+  if (p2_1) {
+    _method_measures_149_0 := Seq[Measure$]()
+    _err_1 := null
+    l_10_0 := l_2_0
+    v_3_0 := v_1_0
+  }
+  assert p1_1 && p2_1 ==> perm(accVal(l_10)) >= write && perm(accVal_0(l_10_0)) >= write ==> accVal_low(l_10, l_10_0)
+  if (p1_1) {
+    unfold acc(accVal(l_10), write)
+  }
+  if (p2_1) {
+    unfold acc(accVal_0(l_10_0), write)
+  }
+  var p1_2: Bool
+  var p2_2: Bool
+  var p3_0: Bool
+  var p4_0: Bool
+  p1_2 := p1_1 && perm(_MaySet(l_10, 16127119405273128440691731219438409396)) > none
+  p2_2 := p2_1 && perm(_MaySet_0(l_10_0, 16127119405273128440691731219438409396)) > none
+  p3_0 := p1_1 && !(perm(_MaySet(l_10, 16127119405273128440691731219438409396)) > none)
+  p4_0 := p2_1 && !(perm(_MaySet_0(l_10_0, 16127119405273128440691731219438409396)) > none)
+  if (p1_2) {
+    exhale acc(_MaySet(l_10, 16127119405273128440691731219438409396), write)
+    inhale acc(l_10.ListClass_val, write)
+  }
+  if (p2_2) {
+    exhale acc(_MaySet_0(l_10_0, 16127119405273128440691731219438409396), write)
+    inhale acc(l_10_0.ListClass_valp, write)
+  }
+  if (p1_1) {
+    l_10.ListClass_val := v_3
+  }
+  if (p2_1) {
+    l_10_0.ListClass_valp := v_3_0
+  }
+  if (p1_1) {
+    fold acc(accVal(l_10), write)
+  }
+  if (p2_1) {
+    fold acc(accVal_0(l_10_0), write)
+  }
+  assert p1_1 && p2_1 ==> accVal_low(l_10, l_10_0)
+  assert true
+}
+
+method unfold_fail(p1_3: Bool, p2_3: Bool, _cthread_150: Ref, _cthread_150_0: Ref, _caller_measures_150: Seq[Measure$], _caller_measures_150_0: Seq[Measure$], _residue_150: Perm, _residue_150_0: Perm, secret: Ref, secret_1: Ref) returns (_current_wait_level_150: Perm, _current_wait_level_150_0: Perm)
+  requires (p1_3 ==> _cthread_150 != null) && (p2_3 ==> _cthread_150_0 != null)
+  requires (p1_3 ==> issubtype(typeof(_cthread_150), Thread_0())) && (p2_3 ==> issubtype(typeof(_cthread_150_0), Thread_0()))
+  requires (p1_3 ==> issubtype(typeof(secret), bool())) && (p2_3 ==> issubtype(typeof(secret_1), bool()))
+  requires (p1_3 ==> [true, perm(MustTerminate(_cthread_150)) == none && ((forperm _r_7: Ref [MustInvokeBounded(_r_7)] :: false) && ((forperm _r_7: Ref [MustInvokeUnbounded(_r_7)] :: false) && ((forperm _r_7: Ref [_r_7.MustReleaseBounded] :: false) && (forperm _r_7: Ref [_r_7.MustReleaseUnbounded] :: false))))]) && (p2_3 ==> [true, perm(MustTerminate_0(_cthread_150_0)) == none && ((forperm _r_7: Ref [MustInvokeBounded_0(_r_7)] :: false) && ((forperm _r_7: Ref [MustInvokeUnbounded_0(_r_7)] :: false) && ((forperm _r_7: Ref [_r_7.MustReleaseBoundedp] :: false) && (forperm _r_7: Ref [_r_7.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_3 ==> [(forperm _r_5: Ref [_r_5.MustReleaseBounded] :: Level(_r_5) <= _current_wait_level_150) && ((forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: Level(_r_5) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]) && (p2_3 ==> [(forperm _r_5: Ref [_r_5.MustReleaseBoundedp] :: Level(_r_5) <= _current_wait_level_150_0) && ((forperm _r_5: Ref [_r_5.MustReleaseUnboundedp] :: Level(_r_5) <= _current_wait_level_150_0) && _residue_150_0 <= _current_wait_level_150_0), true])
+  ensures (p1_3 ==> [true, (forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false)))]) && (p2_3 ==> [true, (forperm _r_6: Ref [MustInvokeBounded_0(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded_0(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBoundedp] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_3
+  var _err: Ref
+  var _err_2: Ref
+  var l_3: Ref
+  var l_3_0: Ref
+  var secret_0: Ref
+  var secret_0_0: Ref
+  var ListClass_res: Ref
+  var ListClass_res_3: Ref
+  var ListClass_res_0: Ref
+  var ListClass_res_0_0: Ref
+  var _cwl_150: Perm
+  var _cwl_150_0: Perm
+  var _method_measures_150: Seq[Measure$]
+  var _method_measures_150_0: Seq[Measure$]
+  if (p1_3) {
+    _method_measures_150 := Seq[Measure$]()
+    _err := null
+    secret_0 := secret
+  }
+  if (p2_3) {
+    _method_measures_150_0 := Seq[Measure$]()
+    _err_2 := null
+    secret_0_0 := secret_1
+  }
+  var p1_4: Bool
+  var p2_4: Bool
+  var p3_1: Bool
+  var p4_1: Bool
+  p1_4 := p1_3 && bool___unbox__(secret_0)
+  p2_4 := p2_3 && bool___unbox__(secret_0_0)
+  p3_1 := p1_3 && !bool___unbox__(secret_0)
+  p4_1 := p2_3 && !bool___unbox__(secret_0_0)
+  var tmp: Ref
+  tmp := new()
+  if (p1_4) {
+    ListClass_res := tmp
+  }
+  if (p2_4) {
+    ListClass_res_3 := tmp
+  }
+  if (p1_4) {
+    inhale typeof(ListClass_res) == ListClass()
+    inhale acc(_MaySet(ListClass_res, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet(ListClass_res, 18767159908529005707750004968651527860), write)
+  }
+  if (p2_4) {
+    inhale typeof(ListClass_res_3) == ListClass()
+    inhale acc(_MaySet_0(ListClass_res_3, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet_0(ListClass_res_3, 18767159908529005707750004968651527860), write)
+  }
+  // Method call: ListClass___init__
+  if (p1_4 || p2_4) {
+    var tmp1: Ref
+    var tmp2: Ref
+    var tmp1_0: Seq[Measure$]
+    var tmp2_0: Seq[Measure$]
+    var tmp1_1: Perm
+    var tmp2_1: Perm
+    var tmp1_2: Ref
+    var tmp2_2: Ref
+    var tmp1_3: Ref
+    var tmp2_3: Ref
+    var tmp1_4: Perm
+    var tmp2_4: Perm
+    if (p1_4) {
+      tmp1 := _cthread_150
+      tmp1_0 := _method_measures_150
+      tmp1_1 := _residue_150
+      tmp1_2 := ListClass_res
+      tmp1_3 := __prim__int___box__(0)
+    }
+    if (p2_4) {
+      tmp2 := _cthread_150_0
+      tmp2_0 := _method_measures_150_0
+      tmp2_1 := _residue_150_0
+      tmp2_2 := ListClass_res_3
+      tmp2_3 := __prim__int___box__(0)
+    }
+    tmp1_4, tmp2_4 := ListClass___init__(p1_4, p2_4, tmp1, tmp2, tmp1_0, tmp2_0, tmp1_1, tmp2_1, tmp1_2, tmp2_2, tmp1_3, tmp2_3)
+    if (p1_4) {
+      _cwl_150 := tmp1_4
+    }
+    if (p2_4) {
+      _cwl_150_0 := tmp2_4
+    }
+  }
+  if (p1_4) {
+    l_3 := ListClass_res
+    inhale _isDefined(3366764)
+  }
+  if (p2_4) {
+    l_3_0 := ListClass_res_3
+    inhale true
+  }
+  if (p1_4) {
+    unfold acc(MyList(_checkDefined(l_3, 3366764)), write)
+  }
+  if (p2_4) {
+    unfold acc(MyList_0(l_3_0), write)
+  }
+  if (p1_4) {
+    fold acc(accVal(_checkDefined(l_3, 3366764)), write)
+  }
+  if (p2_4) {
+    fold acc(accVal_0(l_3_0), write)
+  }
+  assert p1_4 && p2_4 ==> accVal_low(_checkDefined(l_3, 3366764), l_3_0)
+  var tmp_0: Ref
+  tmp_0 := new()
+  if (p3_1) {
+    ListClass_res_0 := tmp_0
+  }
+  if (p4_1) {
+    ListClass_res_0_0 := tmp_0
+  }
+  if (p3_1) {
+    inhale typeof(ListClass_res_0) == ListClass()
+    inhale acc(_MaySet(ListClass_res_0, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet(ListClass_res_0, 18767159908529005707750004968651527860), write)
+  }
+  if (p4_1) {
+    inhale typeof(ListClass_res_0_0) == ListClass()
+    inhale acc(_MaySet_0(ListClass_res_0_0, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet_0(ListClass_res_0_0, 18767159908529005707750004968651527860), write)
+  }
+  // Method call: ListClass___init__
+  if (p3_1 || p4_1) {
+    var tmp1_5: Ref
+    var tmp2_5: Ref
+    var tmp1_6: Seq[Measure$]
+    var tmp2_6: Seq[Measure$]
+    var tmp1_7: Perm
+    var tmp2_7: Perm
+    var tmp1_8: Ref
+    var tmp2_8: Ref
+    var tmp1_9: Ref
+    var tmp2_9: Ref
+    var tmp1_10: Perm
+    var tmp2_10: Perm
+    if (p3_1) {
+      tmp1_5 := _cthread_150
+      tmp1_6 := _method_measures_150
+      tmp1_7 := _residue_150
+      tmp1_8 := ListClass_res_0
+      tmp1_9 := __prim__int___box__(1)
+    }
+    if (p4_1) {
+      tmp2_5 := _cthread_150_0
+      tmp2_6 := _method_measures_150_0
+      tmp2_7 := _residue_150_0
+      tmp2_8 := ListClass_res_0_0
+      tmp2_9 := __prim__int___box__(1)
+    }
+    tmp1_10, tmp2_10 := ListClass___init__(p3_1, p4_1, tmp1_5, tmp2_5, tmp1_6, tmp2_6, tmp1_7, tmp2_7, tmp1_8, tmp2_8, tmp1_9, tmp2_9)
+    if (p3_1) {
+      _cwl_150 := tmp1_10
+    }
+    if (p4_1) {
+      _cwl_150_0 := tmp2_10
+    }
+  }
+  if (p3_1) {
+    l_3 := ListClass_res_0
+    inhale _isDefined(3366764)
+  }
+  if (p4_1) {
+    l_3_0 := ListClass_res_0_0
+    inhale true
+  }
+  if (p3_1) {
+    unfold acc(MyList(_checkDefined(l_3, 3366764)), write)
+  }
+  if (p4_1) {
+    unfold acc(MyList_0(l_3_0), write)
+  }
+  if (p3_1) {
+    fold acc(accVal(_checkDefined(l_3, 3366764)), write)
+  }
+  if (p4_1) {
+    fold acc(accVal_0(l_3_0), write)
+  }
+  assert p3_1 && p4_1 ==> accVal_low(_checkDefined(l_3, 3366764), l_3_0)
+  assert p1_3 && p2_3 ==> perm(accVal(_checkDefined(l_3, 3366764))) >= write && perm(accVal_0(l_3_0)) >= write ==> accVal_low(_checkDefined(l_3, 3366764), l_3_0)
+  if (p1_3) {
+    unfold acc(accVal(_checkDefined(l_3, 3366764)), write)
+  }
+  if (p2_3) {
+    unfold acc(accVal_0(l_3_0), write)
+  }
+  assert true
+}
+
+method m1(p1_5: Bool, p2_5: Bool, _cthread_151: Ref, _cthread_151_0: Ref, _caller_measures_151: Seq[Measure$], _caller_measures_151_0: Seq[Measure$], _residue_151: Perm, _residue_151_0: Perm) returns (_current_wait_level_151: Perm, _current_wait_level_151_0: Perm, _res: Ref, _res_0: Ref)
+  requires (p1_5 ==> _cthread_151 != null) && (p2_5 ==> _cthread_151_0 != null)
+  requires (p1_5 ==> issubtype(typeof(_cthread_151), Thread_0())) && (p2_5 ==> issubtype(typeof(_cthread_151_0), Thread_0()))
+  requires (p1_5 ==> [true, perm(MustTerminate(_cthread_151)) == none && ((forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false))))]) && (p2_5 ==> [true, perm(MustTerminate_0(_cthread_151_0)) == none && ((forperm _r_10: Ref [MustInvokeBounded_0(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded_0(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBoundedp] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_5 ==> [(forperm _r_8: Ref [_r_8.MustReleaseBounded] :: Level(_r_8) <= _current_wait_level_151) && ((forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: Level(_r_8) <= _current_wait_level_151) && _residue_151 <= _current_wait_level_151), true]) && (p2_5 ==> [(forperm _r_8: Ref [_r_8.MustReleaseBoundedp] :: Level(_r_8) <= _current_wait_level_151_0) && ((forperm _r_8: Ref [_r_8.MustReleaseUnboundedp] :: Level(_r_8) <= _current_wait_level_151_0) && _residue_151_0 <= _current_wait_level_151_0), true])
+  ensures (p1_5 ==> issubtype(typeof(_res), ListClass())) && (p2_5 ==> issubtype(typeof(_res_0), ListClass()))
+  ensures (p1_5 ==> acc(MyList(_res), write)) && (p2_5 ==> acc(MyList_0(_res_0), write))
+  ensures (p1_5 ==> int___eq__(size(_res), __prim__int___box__(2))) && (p2_5 ==> int___eq__(size_1(_res_0), __prim__int___box__(2)))
+  ensures (p1_5 ==> [true, (forperm _r_9: Ref [MustInvokeBounded(_r_9)] :: false) && ((forperm _r_9: Ref [MustInvokeUnbounded(_r_9)] :: false) && ((forperm _r_9: Ref [_r_9.MustReleaseBounded] :: false) && (forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: false)))]) && (p2_5 ==> [true, (forperm _r_9: Ref [MustInvokeBounded_0(_r_9)] :: false) && ((forperm _r_9: Ref [MustInvokeUnbounded_0(_r_9)] :: false) && ((forperm _r_9: Ref [_r_9.MustReleaseBoundedp] :: false) && (forperm _r_9: Ref [_r_9.MustReleaseUnboundedp] :: false)))])
+{
+  var ret1: Bool
+  var ret2: Bool
+  inhale p1_5
+  ret1 := false
+  ret2 := false
+  var _err: Ref
+  var _err_3: Ref
+  var new_list: Ref
+  var new_list_0: Ref
+  var next_list: Ref
+  var next_list_0: Ref
+  var ListClass_res_1: Ref
+  var ListClass_res_1_0: Ref
+  var ListClass_res_2: Ref
+  var ListClass_res_2_0: Ref
+  var _cwl_151: Perm
+  var _cwl_151_0: Perm
+  var _method_measures_151: Seq[Measure$]
+  var _method_measures_151_0: Seq[Measure$]
+  if (p1_5 && !ret1) {
+    _method_measures_151 := Seq[Measure$]()
+    _res := null
+    _err := null
+  }
+  if (p2_5 && !ret2) {
+    _method_measures_151_0 := Seq[Measure$]()
+    _res_0 := null
+    _err_3 := null
+  }
+  var tmp_1: Ref
+  tmp_1 := new()
+  if (p1_5 && !ret1) {
+    ListClass_res_1 := tmp_1
+  }
+  if (p2_5 && !ret2) {
+    ListClass_res_1_0 := tmp_1
+  }
+  if (p1_5 && !ret1) {
+    inhale typeof(ListClass_res_1) == ListClass()
+    inhale acc(_MaySet(ListClass_res_1, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet(ListClass_res_1, 18767159908529005707750004968651527860), write)
+  }
+  if (p2_5 && !ret2) {
+    inhale typeof(ListClass_res_1_0) == ListClass()
+    inhale acc(_MaySet_0(ListClass_res_1_0, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet_0(ListClass_res_1_0, 18767159908529005707750004968651527860), write)
+  }
+  // Method call: ListClass___init__
+  if (p1_5 && !ret1 || p2_5 && !ret2) {
+    var tmp1_11: Ref
+    var tmp2_11: Ref
+    var tmp1_12: Seq[Measure$]
+    var tmp2_12: Seq[Measure$]
+    var tmp1_13: Perm
+    var tmp2_13: Perm
+    var tmp1_14: Ref
+    var tmp2_14: Ref
+    var tmp1_15: Ref
+    var tmp2_15: Ref
+    var tmp1_16: Perm
+    var tmp2_16: Perm
+    if (p1_5 && !ret1) {
+      tmp1_11 := _cthread_151
+      tmp1_12 := _method_measures_151
+      tmp1_13 := _residue_151
+      tmp1_14 := ListClass_res_1
+      tmp1_15 := __prim__int___box__(0)
+    }
+    if (p2_5 && !ret2) {
+      tmp2_11 := _cthread_151_0
+      tmp2_12 := _method_measures_151_0
+      tmp2_13 := _residue_151_0
+      tmp2_14 := ListClass_res_1_0
+      tmp2_15 := __prim__int___box__(0)
+    }
+    tmp1_16, tmp2_16 := ListClass___init__(p1_5 && !ret1, p2_5 && !ret2, tmp1_11, tmp2_11, tmp1_12, tmp2_12, tmp1_13, tmp2_13, tmp1_14, tmp2_14, tmp1_15, tmp2_15)
+    if (p1_5 && !ret1) {
+      _cwl_151 := tmp1_16
+    }
+    if (p2_5 && !ret2) {
+      _cwl_151_0 := tmp2_16
+    }
+  }
+  if (p1_5 && !ret1) {
+    new_list := ListClass_res_1
+    inhale _isDefined(5599206377282121654794151278)
+  }
+  if (p2_5 && !ret2) {
+    new_list_0 := ListClass_res_1_0
+    inhale true
+  }
+  assert (p1_5 && !ret1 ==> int___eq__(size(_checkDefined(new_list, 5599206377282121654794151278)), __prim__int___box__(1))) && (p2_5 && !ret2 ==> int___eq__(size_1(new_list_0), __prim__int___box__(1)))
+  var tmp_2: Ref
+  tmp_2 := new()
+  if (p1_5 && !ret1) {
+    ListClass_res_2 := tmp_2
+  }
+  if (p2_5 && !ret2) {
+    ListClass_res_2_0 := tmp_2
+  }
+  if (p1_5 && !ret1) {
+    inhale typeof(ListClass_res_2) == ListClass()
+    inhale acc(_MaySet(ListClass_res_2, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet(ListClass_res_2, 18767159908529005707750004968651527860), write)
+  }
+  if (p2_5 && !ret2) {
+    inhale typeof(ListClass_res_2_0) == ListClass()
+    inhale acc(_MaySet_0(ListClass_res_2_0, 16127119405273128440691731219438409396), write)
+    inhale acc(_MaySet_0(ListClass_res_2_0, 18767159908529005707750004968651527860), write)
+  }
+  // Method call: ListClass___init__
+  if (p1_5 && !ret1 || p2_5 && !ret2) {
+    var tmp1_17: Ref
+    var tmp2_17: Ref
+    var tmp1_18: Seq[Measure$]
+    var tmp2_18: Seq[Measure$]
+    var tmp1_19: Perm
+    var tmp2_19: Perm
+    var tmp1_20: Ref
+    var tmp2_20: Ref
+    var tmp1_21: Ref
+    var tmp2_21: Ref
+    var tmp1_22: Perm
+    var tmp2_22: Perm
+    if (p1_5 && !ret1) {
+      tmp1_17 := _cthread_151
+      tmp1_18 := _method_measures_151
+      tmp1_19 := _residue_151
+      tmp1_20 := ListClass_res_2
+      tmp1_21 := __prim__int___box__(1)
+    }
+    if (p2_5 && !ret2) {
+      tmp2_17 := _cthread_151_0
+      tmp2_18 := _method_measures_151_0
+      tmp2_19 := _residue_151_0
+      tmp2_20 := ListClass_res_2_0
+      tmp2_21 := __prim__int___box__(1)
+    }
+    tmp1_22, tmp2_22 := ListClass___init__(p1_5 && !ret1, p2_5 && !ret2, tmp1_17, tmp2_17, tmp1_18, tmp2_18, tmp1_19, tmp2_19, tmp1_20, tmp2_20, tmp1_21, tmp2_21)
+    if (p1_5 && !ret1) {
+      _cwl_151 := tmp1_22
+    }
+    if (p2_5 && !ret2) {
+      _cwl_151_0 := tmp2_22
+    }
+  }
+  if (p1_5 && !ret1) {
+    next_list := ListClass_res_2
+    inhale _isDefined(7063526878319919770004645230)
+  }
+  if (p2_5 && !ret2) {
+    next_list_0 := ListClass_res_2_0
+    inhale true
+  }
+  if (p1_5 && !ret1) {
+    unfold acc(MyList(_checkDefined(new_list, 5599206377282121654794151278)), write)
+  }
+  if (p2_5 && !ret2) {
+    unfold acc(MyList_0(new_list_0), write)
+  }
+  var p1_6: Bool
+  var p2_6: Bool
+  var p3_2: Bool
+  var p4_2: Bool
+  p1_6 := p1_5 && !ret1 && perm(_MaySet(_checkDefined(new_list, 5599206377282121654794151278), 18767159908529005707750004968651527860)) > none
+  p2_6 := p2_5 && !ret2 && perm(_MaySet_0(new_list_0, 18767159908529005707750004968651527860)) > none
+  p3_2 := p1_5 && !ret1 && !(perm(_MaySet(_checkDefined(new_list, 5599206377282121654794151278), 18767159908529005707750004968651527860)) > none)
+  p4_2 := p2_5 && !ret2 && !(perm(_MaySet_0(new_list_0, 18767159908529005707750004968651527860)) > none)
+  if (p1_6 && !ret1) {
+    exhale acc(_MaySet(_checkDefined(new_list, 5599206377282121654794151278), 18767159908529005707750004968651527860), write)
+    inhale acc(_checkDefined(new_list, 5599206377282121654794151278).ListClass_next, write)
+  }
+  if (p2_6 && !ret2) {
+    exhale acc(_MaySet_0(new_list_0, 18767159908529005707750004968651527860), write)
+    inhale acc(new_list_0.ListClass_nextp, write)
+  }
+  if (p1_5 && !ret1) {
+    _checkDefined(new_list, 5599206377282121654794151278).ListClass_next := _checkDefined(next_list, 7063526878319919770004645230)
+  }
+  if (p2_5 && !ret2) {
+    new_list_0.ListClass_nextp := next_list_0
+  }
+  if (p1_5 && !ret1) {
+    fold acc(MyList(_checkDefined(new_list, 5599206377282121654794151278)), write)
+  }
+  if (p2_5 && !ret2) {
+    fold acc(MyList_0(new_list_0), write)
+  }
+  if (p1_5 && !ret1) {
+    _res := _checkDefined(new_list, 5599206377282121654794151278)
+    ret1 := true
+  }
+  if (p2_5 && !ret2) {
+    _res_0 := new_list_0
+    ret2 := true
+  }
+  assert true
+}
+
+method getHead(p1_7: Bool, p2_7: Bool, _cthread_152: Ref, _cthread_152_0: Ref, _caller_measures_152: Seq[Measure$], _caller_measures_152_0: Seq[Measure$], _residue_152: Perm, _residue_152_0: Perm, l_4: Ref, l_4_0: Ref) returns (_current_wait_level_152: Perm, _current_wait_level_152_0: Perm, _res: Ref, _res_1: Ref)
+  requires (p1_7 ==> _cthread_152 != null) && (p2_7 ==> _cthread_152_0 != null)
+  requires (p1_7 ==> issubtype(typeof(_cthread_152), Thread_0())) && (p2_7 ==> issubtype(typeof(_cthread_152_0), Thread_0()))
+  requires (p1_7 ==> l_4 == null || issubtype(typeof(l_4), ListClass())) && (p2_7 ==> l_4_0 == null || issubtype(typeof(l_4_0), ListClass()))
+  requires (p1_7 ==> l_4 != null ==> acc(MyList(l_4), write)) && (p2_7 ==> l_4_0 != null ==> acc(MyList_0(l_4_0), write))
+  requires (p1_7 ==> [true, perm(MustTerminate(_cthread_152)) == none && ((forperm _r_13: Ref [MustInvokeBounded(_r_13)] :: false) && ((forperm _r_13: Ref [MustInvokeUnbounded(_r_13)] :: false) && ((forperm _r_13: Ref [_r_13.MustReleaseBounded] :: false) && (forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: false))))]) && (p2_7 ==> [true, perm(MustTerminate_0(_cthread_152_0)) == none && ((forperm _r_13: Ref [MustInvokeBounded_0(_r_13)] :: false) && ((forperm _r_13: Ref [MustInvokeUnbounded_0(_r_13)] :: false) && ((forperm _r_13: Ref [_r_13.MustReleaseBoundedp] :: false) && (forperm _r_13: Ref [_r_13.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_7 ==> [(forperm _r_11: Ref [_r_11.MustReleaseBounded] :: Level(_r_11) <= _current_wait_level_152) && ((forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: Level(_r_11) <= _current_wait_level_152) && _residue_152 <= _current_wait_level_152), true]) && (p2_7 ==> [(forperm _r_11: Ref [_r_11.MustReleaseBoundedp] :: Level(_r_11) <= _current_wait_level_152_0) && ((forperm _r_11: Ref [_r_11.MustReleaseUnboundedp] :: Level(_r_11) <= _current_wait_level_152_0) && _residue_152_0 <= _current_wait_level_152_0), true])
+  ensures (p1_7 ==> _res == null || issubtype(typeof(_res), int())) && (p2_7 ==> _res_1 == null || issubtype(typeof(_res_1), int()))
+  ensures (p1_7 ==> l_4 != null ==> acc(MyList(l_4), write)) && (p2_7 ==> l_4_0 != null ==> acc(MyList_0(l_4_0), write))
+  ensures (p1_7 ==> [true, (forperm _r_12: Ref [MustInvokeBounded(_r_12)] :: false) && ((forperm _r_12: Ref [MustInvokeUnbounded(_r_12)] :: false) && ((forperm _r_12: Ref [_r_12.MustReleaseBounded] :: false) && (forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: false)))]) && (p2_7 ==> [true, (forperm _r_12: Ref [MustInvokeBounded_0(_r_12)] :: false) && ((forperm _r_12: Ref [MustInvokeUnbounded_0(_r_12)] :: false) && ((forperm _r_12: Ref [_r_12.MustReleaseBoundedp] :: false) && (forperm _r_12: Ref [_r_12.MustReleaseUnboundedp] :: false)))])
+{
+  var ret1_0: Bool
+  var ret2_0: Bool
+  inhale p1_7
+  ret1_0 := false
+  ret2_0 := false
+  var _err: Ref
+  var _err_4: Ref
+  var res: Ref
+  var res_1: Ref
+  var l_11: Ref
+  var l_11_0: Ref
+  var _cwl_152: Perm
+  var _cwl_152_0: Perm
+  var _method_measures_152: Seq[Measure$]
+  var _method_measures_152_0: Seq[Measure$]
+  if (p1_7 && !ret1_0) {
+    _method_measures_152 := Seq[Measure$]()
+    _res := null
+    _err := null
+    l_11 := l_4
+  }
+  if (p2_7 && !ret2_0) {
+    _method_measures_152_0 := Seq[Measure$]()
+    _res_1 := null
+    _err_4 := null
+    l_11_0 := l_4_0
+  }
+  var p1_8: Bool
+  var p2_8: Bool
+  var p3_3: Bool
+  var p4_3: Bool
+  p1_8 := p1_7 && !ret1_0 && l_11 == null
+  p2_8 := p2_7 && !ret2_0 && l_11_0 == null
+  p3_3 := p1_7 && !ret1_0 && !(l_11 == null)
+  p4_3 := p2_7 && !ret2_0 && !(l_11_0 == null)
+  if (p1_8 && !ret1_0) {
+    _res := null
+    ret1_0 := true
+  }
+  if (p2_8 && !ret2_0) {
+    _res_1 := null
+    ret2_0 := true
+  }
+  if (p1_7 && !ret1_0) {
+    unfold acc(MyList(l_11), write)
+  }
+  if (p2_7 && !ret2_0) {
+    unfold acc(MyList_0(l_11_0), write)
+  }
+  if (p1_7 && !ret1_0) {
+    res := l_11.ListClass_val
+    inhale _isDefined(7562610)
+  }
+  if (p2_7 && !ret2_0) {
+    res_1 := l_11_0.ListClass_valp
+    inhale true
+  }
+  if (p1_7 && !ret1_0) {
+    fold acc(MyList(l_11), write)
+  }
+  if (p2_7 && !ret2_0) {
+    fold acc(MyList_0(l_11_0), write)
+  }
+  if (p1_7 && !ret1_0) {
+    _res := _checkDefined(res, 7562610)
+    ret1_0 := true
+  }
+  if (p2_7 && !ret2_0) {
+    _res_1 := res_1
+    ret2_0 := true
+  }
+  assert true
+}
+
+method contains(p1_9: Bool, p2_9: Bool, _cthread_153: Ref, _cthread_153_0: Ref, _caller_measures_153: Seq[Measure$], _caller_measures_153_0: Seq[Measure$], _residue_153: Perm, _residue_153_0: Perm, l_5: Ref, l_5_0: Ref, key: Ref, key_1: Ref, perm_0: Ref, perm_0_0: Ref) returns (_current_wait_level_153: Perm, _current_wait_level_153_0: Perm, _res: Ref, _res_2: Ref)
+  requires (p1_9 ==> _cthread_153 != null) && (p2_9 ==> _cthread_153_0 != null)
+  requires (p1_9 ==> issubtype(typeof(_cthread_153), Thread_0())) && (p2_9 ==> issubtype(typeof(_cthread_153_0), Thread_0()))
+  requires (p1_9 ==> l_5 == null || issubtype(typeof(l_5), ListClass())) && (p2_9 ==> l_5_0 == null || issubtype(typeof(l_5_0), ListClass()))
+  requires (p1_9 ==> issubtype(typeof(key), int())) && (p2_9 ==> issubtype(typeof(key_1), int()))
+  requires (p1_9 ==> issubtype(typeof(perm_0), int())) && (p2_9 ==> issubtype(typeof(perm_0_0), int()))
+  requires (p1_9 ==> int___gt__(int___unbox__(perm_0), 0)) && (p2_9 ==> int___gt__(int___unbox__(perm_0_0), 0))
+  requires (p1_9 ==> l_5 != null ==> acc(MyListLow(l_5), 1 / int___unbox__(perm_0))) && (p2_9 ==> l_5_0 != null ==> acc(MyListLow_0(l_5_0), 1 / int___unbox__(perm_0_0))) && ((p1_9 ==> l_5 != null) && (p2_9 ==> l_5_0 != null) ==> p1_9 && p2_9 ==> MyListLow_low(l_5, l_5_0))
+  requires (p1_9 ==> [true, perm(MustTerminate(_cthread_153)) == none && ((forperm _r_16: Ref [MustInvokeBounded(_r_16)] :: false) && ((forperm _r_16: Ref [MustInvokeUnbounded(_r_16)] :: false) && ((forperm _r_16: Ref [_r_16.MustReleaseBounded] :: false) && (forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: false))))]) && (p2_9 ==> [true, perm(MustTerminate_0(_cthread_153_0)) == none && ((forperm _r_16: Ref [MustInvokeBounded_0(_r_16)] :: false) && ((forperm _r_16: Ref [MustInvokeUnbounded_0(_r_16)] :: false) && ((forperm _r_16: Ref [_r_16.MustReleaseBoundedp] :: false) && (forperm _r_16: Ref [_r_16.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_9 ==> [(forperm _r_14: Ref [_r_14.MustReleaseBounded] :: Level(_r_14) <= _current_wait_level_153) && ((forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: Level(_r_14) <= _current_wait_level_153) && _residue_153 <= _current_wait_level_153), true]) && (p2_9 ==> [(forperm _r_14: Ref [_r_14.MustReleaseBoundedp] :: Level(_r_14) <= _current_wait_level_153_0) && ((forperm _r_14: Ref [_r_14.MustReleaseUnboundedp] :: Level(_r_14) <= _current_wait_level_153_0) && _residue_153_0 <= _current_wait_level_153_0), true])
+  ensures (p1_9 ==> issubtype(typeof(_res), bool())) && (p2_9 ==> issubtype(typeof(_res_2), bool()))
+  ensures (p1_9 ==> l_5 != null ==> acc(MyListLow(l_5), 1 / int___unbox__(perm_0))) && (p2_9 ==> l_5_0 != null ==> acc(MyListLow_0(l_5_0), 1 / int___unbox__(perm_0_0))) && ((p1_9 ==> l_5 != null) && (p2_9 ==> l_5_0 != null) ==> p1_9 && p2_9 ==> MyListLow_low(l_5, l_5_0))
+  ensures (p1_9 ==> [true, (forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false)))]) && (p2_9 ==> [true, (forperm _r_15: Ref [MustInvokeBounded_0(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded_0(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBoundedp] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnboundedp] :: false)))])
+{
+  var ret1_1: Bool
+  var ret2_1: Bool
+  inhale p1_9
+  ret1_1 := false
+  ret2_1 := false
+  var _err: Ref
+  var _err_5: Ref
+  var res_0: Ref
+  var res_0_0: Ref
+  var l_12: Ref
+  var l_12_0: Ref
+  var key_0: Ref
+  var key_0_0: Ref
+  var perm_1: Ref
+  var perm_1_0: Ref
+  var contains_res: Ref
+  var contains_res_0: Ref
+  var _cwl_153: Perm
+  var _cwl_153_0: Perm
+  var _method_measures_153: Seq[Measure$]
+  var _method_measures_153_0: Seq[Measure$]
+  if (p1_9 && !ret1_1) {
+    _method_measures_153 := Seq[Measure$]()
+    _res := null
+    _err := null
+    l_12 := l_5
+    key_0 := key
+    perm_1 := perm_0
+  }
+  if (p2_9 && !ret2_1) {
+    _method_measures_153_0 := Seq[Measure$]()
+    _res_2 := null
+    _err_5 := null
+    l_12_0 := l_5_0
+    key_0_0 := key_1
+    perm_1_0 := perm_0_0
+  }
+  var p1_10: Bool
+  var p2_10: Bool
+  var p3_4: Bool
+  var p4_4: Bool
+  p1_10 := p1_9 && !ret1_1 && l_12 == null
+  p2_10 := p2_9 && !ret2_1 && l_12_0 == null
+  p3_4 := p1_9 && !ret1_1 && !(l_12 == null)
+  p4_4 := p2_9 && !ret2_1 && !(l_12_0 == null)
+  if (p1_10 && !ret1_1) {
+    _res := __prim__bool___box__(false)
+    ret1_1 := true
+  }
+  if (p2_10 && !ret2_1) {
+    _res_2 := __prim__bool___box__(false)
+    ret2_1 := true
+  }
+  assert p1_9 && !ret1_1 && (p2_9 && !ret2_1) ==> perm(MyListLow(l_12)) >= write && perm(MyListLow_0(l_12_0)) >= write ==> MyListLow_low(l_12, l_12_0)
+  if (p1_9 && !ret1_1) {
+    unfold acc(MyListLow(l_12), 1 / int___unbox__(perm_1))
+  }
+  if (p2_9 && !ret2_1) {
+    unfold acc(MyListLow_0(l_12_0), 1 / int___unbox__(perm_1_0))
+  }
+  var p1_11: Bool
+  var p2_11: Bool
+  var p3_5: Bool
+  var p4_5: Bool
+  p1_11 := p1_9 && !ret1_1 && int___eq__(l_12.ListClass_val, key_0)
+  p2_11 := p2_9 && !ret2_1 && int___eq__(l_12_0.ListClass_valp, key_0_0)
+  p3_5 := p1_9 && !ret1_1 && !int___eq__(l_12.ListClass_val, key_0)
+  p4_5 := p2_9 && !ret2_1 && !int___eq__(l_12_0.ListClass_valp, key_0_0)
+  if (p1_11 && !ret1_1) {
+    res_0 := __prim__bool___box__(true)
+    inhale _isDefined(3438976502669810318)
+  }
+  if (p2_11 && !ret2_1) {
+    res_0_0 := __prim__bool___box__(true)
+    inhale true
+  }
+  assert (p3_5 && !ret1_1 ==> acc(MyListLow(l_12.ListClass_next), 1 / int___unbox__(perm_1))) && (p4_5 && !ret2_1 ==> acc(MyListLow_0(l_12_0.ListClass_nextp), 1 / int___unbox__(perm_1_0))) && (p3_5 && !ret1_1 && !ret1_1 && (p4_5 && !ret2_1 && !ret2_1) ==> MyListLow_low(l_12.ListClass_next, l_12_0.ListClass_nextp))
+  // Method call: contains
+  if (p3_5 && !ret1_1 || p4_5 && !ret2_1) {
+    var tmp1_23: Ref
+    var tmp2_23: Ref
+    var tmp1_24: Seq[Measure$]
+    var tmp2_24: Seq[Measure$]
+    var tmp1_25: Perm
+    var tmp2_25: Perm
+    var tmp1_26: Ref
+    var tmp2_26: Ref
+    var tmp1_27: Ref
+    var tmp2_27: Ref
+    var tmp1_28: Ref
+    var tmp2_28: Ref
+    var tmp1_29: Perm
+    var tmp2_29: Perm
+    var tmp1_30: Ref
+    var tmp2_30: Ref
+    if (p3_5 && !ret1_1) {
+      tmp1_23 := _cthread_153
+      tmp1_24 := _method_measures_153
+      tmp1_25 := _residue_153
+      tmp1_26 := l_12.ListClass_next
+      tmp1_27 := key_0
+      tmp1_28 := __prim__int___box__(int___mul__(int___unbox__(perm_1), 2))
+    }
+    if (p4_5 && !ret2_1) {
+      tmp2_23 := _cthread_153_0
+      tmp2_24 := _method_measures_153_0
+      tmp2_25 := _residue_153_0
+      tmp2_26 := l_12_0.ListClass_nextp
+      tmp2_27 := key_0_0
+      tmp2_28 := __prim__int___box__(int___mul__(int___unbox__(perm_1_0), 2))
+    }
+    tmp1_29, tmp2_29, tmp1_30, tmp2_30 := contains(p3_5 && !ret1_1, p4_5 && !ret2_1, tmp1_23, tmp2_23, tmp1_24, tmp2_24, tmp1_25, tmp2_25, tmp1_26, tmp2_26, tmp1_27, tmp2_27, tmp1_28, tmp2_28)
+    if (p3_5 && !ret1_1) {
+      _cwl_153 := tmp1_29
+      contains_res := tmp1_30
+    }
+    if (p4_5 && !ret2_1) {
+      _cwl_153_0 := tmp2_29
+      contains_res_0 := tmp2_30
+    }
+  }
+  if (p3_5 && !ret1_1) {
+    res_0 := contains_res
+    inhale _isDefined(3438976502669810318)
+  }
+  if (p4_5 && !ret2_1) {
+    res_0_0 := contains_res_0
+    inhale true
+  }
+  if (p1_9 && !ret1_1) {
+    fold acc(MyListLow(l_12), 1 / int___unbox__(perm_1))
+  }
+  if (p2_9 && !ret2_1) {
+    fold acc(MyListLow_0(l_12_0), 1 / int___unbox__(perm_1_0))
+  }
+  assert p1_9 && !ret1_1 && (p2_9 && !ret2_1) ==> MyListLow_low(l_12, l_12_0)
+  if (p1_9 && !ret1_1) {
+    _res := _checkDefined(res_0, 3438976502669810318)
+    ret1_1 := true
+  }
+  if (p2_9 && !ret2_1) {
+    _res_2 := res_0_0
+    ret2_1 := true
+  }
+  assert true
+}
+
+method ListClass___init__(p1_12: Bool, p2_12: Bool, _cthread_145: Ref, _cthread_145_0: Ref, _caller_measures_145: Seq[Measure$], _caller_measures_145_0: Seq[Measure$], _residue_145: Perm, _residue_145_0: Perm, self: Ref, self_1: Ref, v: Ref, v_5: Ref) returns (_current_wait_level_145: Perm, _current_wait_level_145_0: Perm)
+  requires (p1_12 ==> _cthread_145 != null) && (p2_12 ==> _cthread_145_0 != null)
+  requires (p1_12 ==> issubtype(typeof(_cthread_145), Thread_0())) && (p2_12 ==> issubtype(typeof(_cthread_145_0), Thread_0()))
+  requires (p1_12 ==> self != null) && (p2_12 ==> self_1 != null)
+  requires (p1_12 ==> acc(_MaySet(self, 16127119405273128440691731219438409396), write)) && (p2_12 ==> acc(_MaySet_0(self_1, 16127119405273128440691731219438409396), write))
+  requires (p1_12 ==> acc(_MaySet(self, 18767159908529005707750004968651527860), write)) && (p2_12 ==> acc(_MaySet_0(self_1, 18767159908529005707750004968651527860), write))
+  requires (p1_12 ==> issubtype(typeof(self), ListClass())) && (p2_12 ==> issubtype(typeof(self_1), ListClass()))
+  requires (p1_12 ==> issubtype(typeof(v), int())) && (p2_12 ==> issubtype(typeof(v_5), int()))
+  requires (p1_12 ==> self != null) && (p2_12 ==> self_1 != null)
+  requires (p1_12 ==> [true, perm(MustTerminate(_cthread_145)) == none && ((forperm _r_19: Ref [MustInvokeBounded(_r_19)] :: false) && ((forperm _r_19: Ref [MustInvokeUnbounded(_r_19)] :: false) && ((forperm _r_19: Ref [_r_19.MustReleaseBounded] :: false) && (forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: false))))]) && (p2_12 ==> [true, perm(MustTerminate_0(_cthread_145_0)) == none && ((forperm _r_19: Ref [MustInvokeBounded_0(_r_19)] :: false) && ((forperm _r_19: Ref [MustInvokeUnbounded_0(_r_19)] :: false) && ((forperm _r_19: Ref [_r_19.MustReleaseBoundedp] :: false) && (forperm _r_19: Ref [_r_19.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_12 ==> [(forperm _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <= _current_wait_level_145) && ((forperm _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <= _current_wait_level_145) && _residue_145 <= _current_wait_level_145), true]) && (p2_12 ==> [(forperm _r_17: Ref [_r_17.MustReleaseBoundedp] :: Level(_r_17) <= _current_wait_level_145_0) && ((forperm _r_17: Ref [_r_17.MustReleaseUnboundedp] :: Level(_r_17) <= _current_wait_level_145_0) && _residue_145_0 <= _current_wait_level_145_0), true])
+  ensures (p1_12 ==> acc(MyList(self), write)) && (p2_12 ==> acc(MyList_0(self_1), write))
+  ensures (p1_12 ==> int___eq__(size(self), __prim__int___box__(1))) && (p2_12 ==> int___eq__(size_1(self_1), __prim__int___box__(1)))
+  ensures (p1_12 ==> (unfolding acc(MyList(self), write) in int___eq__(self.ListClass_val, v))) && (p2_12 ==> (unfolding acc(MyList_0(self_1), write) in int___eq__(self_1.ListClass_valp, v_5)))
+  ensures (p1_12 ==> [true, (forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false)))]) && (p2_12 ==> [true, (forperm _r_18: Ref [MustInvokeBounded_0(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded_0(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBoundedp] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_12
+  var _err: Ref
+  var _err_6: Ref
+  var self_0: Ref
+  var self_0_0: Ref
+  var v_4: Ref
+  var v_4_0: Ref
+  var _cwl_145: Perm
+  var _cwl_145_0: Perm
+  var _method_measures_145: Seq[Measure$]
+  var _method_measures_145_0: Seq[Measure$]
+  if (p1_12) {
+    _method_measures_145 := Seq[Measure$]()
+    inhale typeof(self) == ListClass()
+    _err := null
+    self_0 := self
+    v_4 := v
+  }
+  if (p2_12) {
+    _method_measures_145_0 := Seq[Measure$]()
+    inhale typeof(self_1) == ListClass()
+    _err_6 := null
+    self_0_0 := self_1
+    v_4_0 := v_5
+  }
+  var p1_13: Bool
+  var p2_13: Bool
+  var p3_6: Bool
+  var p4_6: Bool
+  p1_13 := p1_12 && perm(_MaySet(self_0, 16127119405273128440691731219438409396)) > none
+  p2_13 := p2_12 && perm(_MaySet_0(self_0_0, 16127119405273128440691731219438409396)) > none
+  p3_6 := p1_12 && !(perm(_MaySet(self_0, 16127119405273128440691731219438409396)) > none)
+  p4_6 := p2_12 && !(perm(_MaySet_0(self_0_0, 16127119405273128440691731219438409396)) > none)
+  if (p1_13) {
+    exhale acc(_MaySet(self_0, 16127119405273128440691731219438409396), write)
+    inhale acc(self_0.ListClass_val, write)
+  }
+  if (p2_13) {
+    exhale acc(_MaySet_0(self_0_0, 16127119405273128440691731219438409396), write)
+    inhale acc(self_0_0.ListClass_valp, write)
+  }
+  if (p1_12) {
+    self_0.ListClass_val := v_4
+  }
+  if (p2_12) {
+    self_0_0.ListClass_valp := v_4_0
+  }
+  var p1_14: Bool
+  var p2_14: Bool
+  var p3_7: Bool
+  var p4_7: Bool
+  p1_14 := p1_12 && perm(_MaySet(self_0, 18767159908529005707750004968651527860)) > none
+  p2_14 := p2_12 && perm(_MaySet_0(self_0_0, 18767159908529005707750004968651527860)) > none
+  p3_7 := p1_12 && !(perm(_MaySet(self_0, 18767159908529005707750004968651527860)) > none)
+  p4_7 := p2_12 && !(perm(_MaySet_0(self_0_0, 18767159908529005707750004968651527860)) > none)
+  if (p1_14) {
+    exhale acc(_MaySet(self_0, 18767159908529005707750004968651527860), write)
+    inhale acc(self_0.ListClass_next, write)
+  }
+  if (p2_14) {
+    exhale acc(_MaySet_0(self_0_0, 18767159908529005707750004968651527860), write)
+    inhale acc(self_0_0.ListClass_nextp, write)
+  }
+  if (p1_12) {
+    self_0.ListClass_next := null
+  }
+  if (p2_12) {
+    self_0_0.ListClass_nextp := null
+  }
+  if (p1_12) {
+    fold acc(MyList(self_0.ListClass_next), write)
+  }
+  if (p2_12) {
+    fold acc(MyList_0(self_0_0.ListClass_nextp), write)
+  }
+  if (p1_12) {
+    fold acc(MyList(self_0), write)
+  }
+  if (p2_12) {
+    fold acc(MyList_0(self_0_0), write)
+  }
+  assert true
+}
+
+method main(p1_15: Bool, p2_15: Bool, _cthread_157: Ref, _cthread_157_0: Ref, _caller_measures_157: Seq[Measure$], _caller_measures_157_0: Seq[Measure$], _residue_157: Perm, _residue_157_0: Perm) returns (_current_wait_level_157: Perm, _current_wait_level_157_0: Perm)
+  requires (p1_15 ==> _cthread_157 != null) && (p2_15 ==> _cthread_157_0 != null)
+  requires (p1_15 ==> issubtype(typeof(_cthread_157), Thread_0())) && (p2_15 ==> issubtype(typeof(_cthread_157_0), Thread_0()))
+  requires (p1_15 ==> [true, perm(MustTerminate(_cthread_157)) == none && ((forperm _r_22: Ref [MustInvokeBounded(_r_22)] :: false) && ((forperm _r_22: Ref [MustInvokeUnbounded(_r_22)] :: false) && ((forperm _r_22: Ref [_r_22.MustReleaseBounded] :: false) && (forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: false))))]) && (p2_15 ==> [true, perm(MustTerminate_0(_cthread_157_0)) == none && ((forperm _r_22: Ref [MustInvokeBounded_0(_r_22)] :: false) && ((forperm _r_22: Ref [MustInvokeUnbounded_0(_r_22)] :: false) && ((forperm _r_22: Ref [_r_22.MustReleaseBoundedp] :: false) && (forperm _r_22: Ref [_r_22.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_15 ==> [(forperm _r_20: Ref [_r_20.MustReleaseBounded] :: Level(_r_20) <= _current_wait_level_157) && ((forperm _r_20: Ref [_r_20.MustReleaseUnbounded] :: Level(_r_20) <= _current_wait_level_157) && _residue_157 <= _current_wait_level_157), true]) && (p2_15 ==> [(forperm _r_20: Ref [_r_20.MustReleaseBoundedp] :: Level(_r_20) <= _current_wait_level_157_0) && ((forperm _r_20: Ref [_r_20.MustReleaseUnboundedp] :: Level(_r_20) <= _current_wait_level_157_0) && _residue_157_0 <= _current_wait_level_157_0), true])
+  ensures (p1_15 ==> [true, (forperm _r_21: Ref [MustInvokeBounded(_r_21)] :: false) && ((forperm _r_21: Ref [MustInvokeUnbounded(_r_21)] :: false) && ((forperm _r_21: Ref [_r_21.MustReleaseBounded] :: false) && (forperm _r_21: Ref [_r_21.MustReleaseUnbounded] :: false)))]) && (p2_15 ==> [true, (forperm _r_21: Ref [MustInvokeBounded_0(_r_21)] :: false) && ((forperm _r_21: Ref [MustInvokeUnbounded_0(_r_21)] :: false) && ((forperm _r_21: Ref [_r_21.MustReleaseBoundedp] :: false) && (forperm _r_21: Ref [_r_21.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_15
+  var module_defined_0: Bool
+  var module_defined_0_0: Bool
+  var module_names_0: Set[_Name]
+  var module_names_0_0: Set[_Name]
+  var _err: Ref
+  var _err_7: Ref
+  var _cwl_157: Perm
+  var _cwl_157_0: Perm
+  var _method_measures_157: Seq[Measure$]
+  var _method_measures_157_0: Seq[Measure$]
+  if (p1_15) {
+    _method_measures_157 := Seq[Measure$]()
+    module_defined_0 := true
+    module_names_0 := Set[_Name]()
+    module_names_0 := (module_names_0 union Set(_single(3106082509126931487350218591)))
+    inhale acc(__file__()._val, 99 / 100) && issubtype(typeof(__file__()._val), str()) && issubtype(typeof(__file__()._val), str())
+    module_names_0 := (module_names_0 union Set(_single(2489530350921051593165922143)))
+    inhale acc(__name__()._val, 99 / 100) && issubtype(typeof(__name__()._val), str()) && issubtype(typeof(__name__()._val), str()) && str___eq__(str___create__(8, 2489249333222104298408468319), __name__()._val)
+    _err := null
+    module_names_0 := (module_names_0 union Set(_single(5123216512802524336881954895)))
+  }
+  if (p2_15) {
+    _method_measures_157_0 := Seq[Measure$]()
+    module_defined_0_0 := true
+    module_names_0_0 := Set[_Name]()
+    module_names_0_0 := (module_names_0_0 union Set(_single(3106082509126931487350218591)))
+    inhale acc(__file__()._valp, 99 / 100) && issubtype(typeof(__file__()._valp), str()) && issubtype(typeof(__file__()._valp), str())
+    module_names_0_0 := (module_names_0_0 union Set(_single(2489530350921051593165922143)))
+    inhale acc(__name__()._valp, 99 / 100) && issubtype(typeof(__name__()._valp), str()) && issubtype(typeof(__name__()._valp), str()) && str___eq__(str___create__(8, 2489249333222104298408468319), __name__()._valp)
+    _err_7 := null
+    module_names_0_0 := (module_names_0_0 union Set(_single(5123216512802524336881954895)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true)
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(3493880855485680332086796127)))
+    module_names_0 := (module_names_0 union Set(_single(7057184306638595147246561612)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(3493880855485680332086796127)))
+    module_names_0_0 := (module_names_0_0 union Set(_single(7057184306638595147246561612)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(3112583351527840927)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(3112583351527840927)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(3114977001225296537)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(3114977001225296537)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(8440646546778541109300584526681709197)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(8440646546778541109300584526681709197)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(8440650508186666822517464203879225997)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(8440650508186666822517464203879225997)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true)
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(4784584632778310766121348725)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(4784584632778310766121348725)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(3793914457419384499)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(3793914457419384499)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(5562688063290118679724587341)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(5562688063290118679724587341)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(1702521203)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(1702521203)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(12653)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(12653)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(2638709263417711257)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(2638709263417711257)))
+  }
+  assert (p1_15 ==> true) && (p2_15 ==> true) && ((p1_15 ==> (_single(7057184306638595147246561612) in module_names_0)) && (p2_15 ==> (_single(7057184306638595147246561612) in module_names_0_0)))
+  if (p1_15) {
+    module_names_0 := (module_names_0 union Set(_single(7063529428583687677306367843)))
+  }
+  if (p2_15) {
+    module_names_0_0 := (module_names_0_0 union Set(_single(7063529428583687677306367843)))
+  }
+  assert true
+}
