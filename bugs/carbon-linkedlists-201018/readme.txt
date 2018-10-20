@@ -1,0 +1,1 @@
+Run via Carbon with /vcsCores:1 (until the log file got large, then killed Z3)
