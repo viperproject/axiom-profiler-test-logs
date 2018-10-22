@@ -1,0 +1,1448 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function Place(): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function set_basic(): PyType
+  
+  function set(arg0: PyType): PyType
+  
+  function set_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function traceback(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function Sequence_basic(): PyType
+  
+  function Sequence(arg0: PyType): PyType
+  
+  function Sequence_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function slice(): PyType
+  
+  unique function range(): PyType
+  
+  unique function Iterator_basic(): PyType
+  
+  function Iterator(arg0: PyType): PyType
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function LevelType(): PyType
+  
+  unique function type(): PyType
+  
+  unique function __prim__Sequence_type(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType :: { set(var0) } extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) && get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_Sequence {
+    (forall var0: PyType :: { Sequence(var0) } extends_(Sequence(var0), object()) && get_basic(Sequence(var0)) == Sequence_basic())
+  }
+  
+  axiom Sequence_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Sequence(arg0)) ==> Sequence_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range {
+    extends_(range(), object()) && get_basic(range()) == range()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType :: { Iterator(var0) } extends_(Iterator(var0), object()) && get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype___prim__Sequence_type {
+    extends_(__prim__Sequence_type(), object()) && get_basic(__prim__Sequence_type()) == __prim__Sequence_type()
+  }
+}
+
+domain Thread {
+  
+  function getMethod(t: Ref): ThreadingID
+  
+  function getArg(t: Ref, i: Int): Ref
+  
+  function getOld(t: Ref, i: Int): Ref
+}
+
+domain Function {
+  
+  unique function max_2(): Function
+}
+
+domain ThreadingID {
+  
+  unique function __init___threading(): ThreadingID
+  
+  unique function append_threading(): ThreadingID
+  
+  unique function extend_threading(): ThreadingID
+  
+  unique function reverse_threading(): ThreadingID
+  
+  unique function __setitem___threading(): ThreadingID
+  
+  unique function __iter___threading(): ThreadingID
+  
+  unique function __getitem_slice___threading(): ThreadingID
+  
+  unique function __add___threading(): ThreadingID
+  
+  unique function __mul___threading(): ThreadingID
+  
+  unique function __init___threading_0(): ThreadingID
+  
+  unique function add_threading(): ThreadingID
+  
+  unique function remove_threading(): ThreadingID
+  
+  unique function clear_threading(): ThreadingID
+  
+  unique function __iter___threading_0(): ThreadingID
+  
+  unique function __init___threading_1(): ThreadingID
+  
+  unique function keys_threading(): ThreadingID
+  
+  unique function __setitem___threading_0(): ThreadingID
+  
+  unique function __iter___threading_1(): ThreadingID
+  
+  unique function values_threading(): ThreadingID
+  
+  unique function split_threading(): ThreadingID
+  
+  unique function __iter___threading_2(): ThreadingID
+  
+  unique function __next___threading(): ThreadingID
+  
+  unique function __del___threading(): ThreadingID
+  
+  unique function NoOp_threading(): ThreadingID
+  
+  unique function Split_threading(): ThreadingID
+  
+  unique function Join_threading(): ThreadingID
+  
+  unique function Gap_threading(): ThreadingID
+  
+  unique function End_threading(): ThreadingID
+  
+  unique function SetVar_threading(): ThreadingID
+  
+  unique function Eval_threading(): ThreadingID
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+  
+  axiom low_true {
+    (forall x: T :: { Low(x) } Low(x))
+  }
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain _Name {
+  
+  function _combine(n1: _Name, n2: _Name): _Name
+  
+  function _single(n: Int): _Name
+  
+  function _get_combined_prefix(n: _Name): _Name
+  
+  function _get_combined_name(n: _Name): _Name
+  
+  function _get_value(n: _Name): Int
+  
+  function _is_single(n: _Name): Bool
+  
+  axiom all_single_or_combined {
+    (forall n: _Name :: n == _single(_get_value(n)) || n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom single_is_single {
+    (forall i: Int :: { _single(i) } _is_single(_single(i)))
+  }
+  
+  axiom combined_is_not_single {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } !_is_single(_combine(n1, n2)))
+  }
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom decompose_combined_prefix {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_prefix(_combine(n1, n2)) == n1)
+  }
+  
+  axiom decompose_combined_name {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_name(_combine(n1, n2)) == n2)
+  }
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+function _joinable(t: Ref): Bool 
+
+
+function _isDefined(id: Int): Bool 
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id) 
+{
+  val
+}
+
+function _asserting(val: Ref, ass: Bool): Ref
+  requires ass 
+{
+  val
+}
+
+function _int_to_bool(i: Int): Bool 
+
+
+function max_1(a: Ref, b: Ref): Ref
+  requires issubtype(typeof(a), int())
+  requires issubtype(typeof(b), int())
+  ensures issubtype(typeof(result), int()) 
+{
+  (int___gt__(int___unbox__(a), int___unbox__(b)) ? a : b)
+}
+
+function __file__(): Ref 
+
+
+function __name__(): Ref 
+
+
+function __file___0(): Ref 
+
+
+function __name___0(): Ref 
+
+
+function get__random_bool_io__value(t_pre: Ref): Bool 
+
+
+function get__random_bool_io__t_post(t_pre: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__non_terminating_io__t_post_0(t_pre_0: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__terminating_io__t_post_1(t_pre_1: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__conditionally_terminating_io__t_post_2(t_pre_2: Ref, value_0: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io1_basic__t_post_3(t_pre_3: Ref, value_1: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io1_non_basic__t_post_4(t_pre_4: Ref, value_2: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io2_basic__t_post_5(t_pre_5: Ref, value_3: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io2_non_basic__t_post_6(t_pre_6: Ref, value_4: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io3_basic__t_post_7(t_pre_7: Ref, value_5: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_io3_non_basic__t_post_8(t_pre_8: Ref, value_6: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io1__t_post_9(t_pre_9: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io2__t_post_10(t_pre_10: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io3__t_post_11(t_pre_11: Ref, value_7: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io4__t_post_12(t_pre_12: Ref, value_8: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io5__t_post_13(t_pre_13: Ref, value_9: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io6__t_post_14(t_pre_14: Ref, value_10: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io7__t_post_15(t_pre_15: Ref, value_11: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io8__t_post_16(t_pre_16: Ref, value_12: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_gap_io9__t_post_17(t_pre_17: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io1__t_post_18(t_pre_19: Ref, value_13: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io2__t_post_19(t_pre_20: Ref, value_14: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io3__t_post_20(t_pre_21: Ref, value_15: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io4__t_post_21(t_pre_22: Ref, value_16: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io5__t_post_22(t_pre_23: Ref, value_17: Bool): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io6__t_post_23(t_pre_24: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io7__t_post_24(t_pre_25: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io8__t_post_25(t_pre_26: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_condition_io9__t_post_26(t_pre_27: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_decreasing_io1__t_post_27(t_pre_28: Ref, value_18: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_decreasing_io2__t_post_28(t_pre_29: Ref, value_19: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__test_measure_decreasing_io3__t_post_29(t_pre_30: Ref, value_20: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__no_op_io__t_post_30(t_pre_37: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__split_io__t_post1(t_pre_38: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__split_io__t_post2(t_pre_38: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__join_io__t_post_31(t_pre1_0: Ref, t_pre2_0: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__gap_io__t_post_32(t_pre_39: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__set_var_io__result_0(t_pre_41: Ref, value_22: Int): Int 
+
+
+function get__set_var_io__t_post_33(t_pre_41: Ref, value_22: Int): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function get__eval_io__result_1(t_pre_42: Ref, func_0: Function, arg_13: Ref): Ref
+  ensures issubtype(typeof(result), object()) 
+
+
+function get__eval_io__t_post_34(t_pre_42: Ref, func_0: Function, arg_13: Ref): Ref
+  ensures issubtype(typeof(result), Place()) 
+
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+  ensures (forall other: Int :: { __prim__int___box__(other) } (__prim__int___box__(other) == result) == (other == prim)) 
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box 
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0) 
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box 
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int()) 
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___gt__(self: Int, other: Int): Bool 
+{
+  self > other
+}
+
+function int___add__(self: Int, other: Int): Int 
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int 
+{
+  self - other
+}
+
+function Place___eq__(self: Ref, other: Ref): Bool
+  ensures result == (self == other) 
+
+
+function Level(r: Ref): Perm 
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool 
+{
+  (forall m: Measure$ :: { (m in map) } (m in map) ==> Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function str___len__(self: Ref): Int
+  ensures result >= 0 
+
+
+function str___val__(self: Ref): Int 
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str() 
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other) 
+
+
+function tuple___val__(self: Ref): Seq[Ref] 
+
+
+function tuple___len__(self: Ref): Int
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)| 
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  requires (let ln == (tuple___len__(self)) in (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) + key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==> result == tuple___val__(self)[tuple___len__(self) + key] 
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate MustInvokeCredit(r: Ref) 
+
+predicate _thread_start(t: Ref) 
+
+predicate _thread_post(t: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate random_bool_io(t_pre: Ref) 
+
+predicate non_terminating_io(t_pre_0: Ref) 
+
+predicate terminating_io(t_pre_1: Ref) 
+
+predicate conditionally_terminating_io(t_pre_2: Ref, value_0: Bool) 
+
+predicate test_measure_io1_basic(t_pre_3: Ref, value_1: Int) 
+
+predicate test_measure_io1_non_basic(t_pre_4: Ref, value_2: Int) 
+
+predicate test_measure_io2_basic(t_pre_5: Ref, value_3: Int) 
+
+predicate test_measure_io2_non_basic(t_pre_6: Ref, value_4: Int) 
+
+predicate test_measure_io3_basic(t_pre_7: Ref, value_5: Int) 
+
+predicate test_measure_io3_non_basic(t_pre_8: Ref, value_6: Int) 
+
+predicate test_gap_io1(t_pre_9: Ref) 
+
+predicate test_gap_io2(t_pre_10: Ref) 
+
+predicate test_gap_io3(t_pre_11: Ref, value_7: Bool) 
+
+predicate test_gap_io4(t_pre_12: Ref, value_8: Bool) 
+
+predicate test_gap_io5(t_pre_13: Ref, value_9: Bool) 
+
+predicate test_gap_io6(t_pre_14: Ref, value_10: Bool) 
+
+predicate test_gap_io7(t_pre_15: Ref, value_11: Bool) 
+
+predicate test_gap_io8(t_pre_16: Ref, value_12: Bool) 
+
+predicate test_gap_io9(t_pre_17: Ref) 
+
+predicate test_gap_io10(t_pre_18: Ref) 
+
+predicate test_condition_io1(t_pre_19: Ref, value_13: Bool) 
+
+predicate test_condition_io2(t_pre_20: Ref, value_14: Bool) 
+
+predicate test_condition_io3(t_pre_21: Ref, value_15: Bool) 
+
+predicate test_condition_io4(t_pre_22: Ref, value_16: Bool) 
+
+predicate test_condition_io5(t_pre_23: Ref, value_17: Bool) 
+
+predicate test_condition_io6(t_pre_24: Ref) 
+
+predicate test_condition_io7(t_pre_25: Ref) 
+
+predicate test_condition_io8(t_pre_26: Ref) 
+
+predicate test_condition_io9(t_pre_27: Ref) 
+
+predicate test_measure_decreasing_io1(t_pre_28: Ref, value_18: Int) 
+
+predicate test_measure_decreasing_io2(t_pre_29: Ref, value_19: Int) 
+
+predicate test_measure_decreasing_io3(t_pre_30: Ref, value_20: Int) 
+
+predicate no_op_io(t_pre_37: Ref) 
+
+predicate split_io(t_pre_38: Ref) 
+
+predicate join_io(t_pre1_0: Ref, t_pre2_0: Ref) 
+
+predicate gap_io(t_pre_39: Ref) 
+
+predicate end_io(t_pre_40: Ref) 
+
+predicate set_var_io(t_pre_41: Ref, value_22: Int) 
+
+predicate eval_io(t_pre_42: Ref, func_0: Function, arg_13: Ref) 
+
+method NoOp(_cthread_146: Ref, _caller_measures_146: Seq[Measure$], _residue_146: Perm, t_pre_31: Ref) returns (_current_wait_level_146: Perm, _res: Ref)
+  requires _cthread_146 != null
+  requires issubtype(typeof(_cthread_146), Thread_0())
+  requires issubtype(typeof(t_pre_31), Place())
+  requires [acc(MustInvokeBounded(t_pre_31), write), (perm(MustInvokeBounded(t_pre_31)) > none && Measure$check(_caller_measures_146, t_pre_31, 1) ? acc(MustInvokeBounded(t_pre_31), write) : (perm(MustInvokeUnbounded(t_pre_31)) > none ? acc(MustInvokeUnbounded(t_pre_31), write) : acc(MustInvokeCredit(t_pre_31), write)))] && (acc(no_op_io(t_pre_31), write) && [acc(MustTerminate(_cthread_146), write), true])
+  requires [true, Measure$check(_caller_measures_146, _cthread_146, 1) || perm(MustTerminate(_cthread_146)) == none && ((forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) && ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) && ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) && (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _current_wait_level_146) && ((forperm _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _current_wait_level_146) && _residue_146 <= _current_wait_level_146), true]
+  ensures issubtype(typeof(_res), Place())
+  ensures [acc(MustInvokeUnbounded(old(get__no_op_io__t_post_30(t_pre_31))), write), (perm(MustInvokeUnbounded(old(get__no_op_io__t_post_30(t_pre_31)))) > none ? acc(MustInvokeUnbounded(old(get__no_op_io__t_post_30(t_pre_31))), write) : acc(MustInvokeCredit(old(get__no_op_io__t_post_30(t_pre_31))), write))] && Place___eq__(old(get__no_op_io__t_post_30(t_pre_31)), _res)
+{
+  var _cwl_146: Perm
+  _res := null
+  inhale false
+}
+
+method Split(_cthread_147: Ref, _caller_measures_147: Seq[Measure$], _residue_147: Perm, t_pre_32: Ref) returns (_current_wait_level_147: Perm, _res: Ref)
+  requires _cthread_147 != null
+  requires issubtype(typeof(_cthread_147), Thread_0())
+  requires issubtype(typeof(t_pre_32), Place())
+  requires [acc(MustInvokeBounded(t_pre_32), write), (perm(MustInvokeBounded(t_pre_32)) > none && Measure$check(_caller_measures_147, t_pre_32, 1) ? acc(MustInvokeBounded(t_pre_32), write) : (perm(MustInvokeUnbounded(t_pre_32)) > none ? acc(MustInvokeUnbounded(t_pre_32), write) : acc(MustInvokeCredit(t_pre_32), write)))] && (acc(split_io(t_pre_32), write) && [acc(MustTerminate(_cthread_147), write), true])
+  requires [true, Measure$check(_caller_measures_147, _cthread_147, 1) || perm(MustTerminate(_cthread_147)) == none && ((forperm _r_2: Ref [MustInvokeBounded(_r_2)] :: false) && ((forperm _r_2: Ref [MustInvokeUnbounded(_r_2)] :: false) && ((forperm _r_2: Ref [_r_2.MustReleaseBounded] :: false) && (forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_1: Ref [_r_1.MustReleaseBounded] :: Level(_r_1) <= _current_wait_level_147) && ((forperm _r_1: Ref [_r_1.MustReleaseUnbounded] :: Level(_r_1) <= _current_wait_level_147) && _residue_147 <= _current_wait_level_147), true]
+  ensures issubtype(typeof(_res), tuple(Seq(Place(), Place())))
+  ensures [acc(MustInvokeUnbounded(old(get__split_io__t_post1(t_pre_32))), write), (perm(MustInvokeUnbounded(old(get__split_io__t_post1(t_pre_32)))) > none ? acc(MustInvokeUnbounded(old(get__split_io__t_post1(t_pre_32))), write) : acc(MustInvokeCredit(old(get__split_io__t_post1(t_pre_32))), write))] && (Place___eq__(old(get__split_io__t_post1(t_pre_32)), tuple___getitem__(_res, 0)) && ([acc(MustInvokeUnbounded(old(get__split_io__t_post2(t_pre_32))), write), (perm(MustInvokeUnbounded(old(get__split_io__t_post2(t_pre_32)))) > none ? acc(MustInvokeUnbounded(old(get__split_io__t_post2(t_pre_32))), write) : acc(MustInvokeCredit(old(get__split_io__t_post2(t_pre_32))), write))] && Place___eq__(old(get__split_io__t_post2(t_pre_32)), tuple___getitem__(_res, 1))))
+{
+  var _cwl_147: Perm
+  _res := null
+  inhale false
+}
+
+method Join(_cthread_148: Ref, _caller_measures_148: Seq[Measure$], _residue_148: Perm, t_pre1: Ref, t_pre2: Ref) returns (_current_wait_level_148: Perm, _res: Ref)
+  requires _cthread_148 != null
+  requires issubtype(typeof(_cthread_148), Thread_0())
+  requires issubtype(typeof(t_pre1), Place())
+  requires issubtype(typeof(t_pre2), Place())
+  requires [acc(MustInvokeBounded(t_pre1), write), (perm(MustInvokeBounded(t_pre1)) > none && Measure$check(_caller_measures_148, t_pre1, 1) ? acc(MustInvokeBounded(t_pre1), write) : (perm(MustInvokeUnbounded(t_pre1)) > none ? acc(MustInvokeUnbounded(t_pre1), write) : acc(MustInvokeCredit(t_pre1), write)))] && ([acc(MustInvokeBounded(t_pre2), write), (perm(MustInvokeBounded(t_pre2)) > none && Measure$check(_caller_measures_148, t_pre2, 1) ? acc(MustInvokeBounded(t_pre2), write) : (perm(MustInvokeUnbounded(t_pre2)) > none ? acc(MustInvokeUnbounded(t_pre2), write) : acc(MustInvokeCredit(t_pre2), write)))] && (acc(join_io(t_pre1, t_pre2), write) && [acc(MustTerminate(_cthread_148), write), true]))
+  requires [true, Measure$check(_caller_measures_148, _cthread_148, 1) || perm(MustTerminate(_cthread_148)) == none && ((forperm _r_4: Ref [MustInvokeBounded(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBounded] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_3: Ref [_r_3.MustReleaseBounded] :: Level(_r_3) <= _current_wait_level_148) && ((forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: Level(_r_3) <= _current_wait_level_148) && _residue_148 <= _current_wait_level_148), true]
+  ensures issubtype(typeof(_res), Place())
+  ensures [acc(MustInvokeUnbounded(old(get__join_io__t_post_31(t_pre1, t_pre2))), write), (perm(MustInvokeUnbounded(old(get__join_io__t_post_31(t_pre1, t_pre2)))) > none ? acc(MustInvokeUnbounded(old(get__join_io__t_post_31(t_pre1, t_pre2))), write) : acc(MustInvokeCredit(old(get__join_io__t_post_31(t_pre1, t_pre2))), write))] && Place___eq__(old(get__join_io__t_post_31(t_pre1, t_pre2)), _res)
+{
+  var _cwl_148: Perm
+  _res := null
+  inhale false
+}
+
+method Gap(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, t_pre_33: Ref) returns (_current_wait_level_149: Perm, _res: Ref)
+  requires _cthread_149 != null
+  requires issubtype(typeof(_cthread_149), Thread_0())
+  requires issubtype(typeof(t_pre_33), Place())
+  requires [acc(MustInvokeBounded(t_pre_33), write), (perm(MustInvokeBounded(t_pre_33)) > none && Measure$check(_caller_measures_149, t_pre_33, 1) ? acc(MustInvokeBounded(t_pre_33), write) : (perm(MustInvokeUnbounded(t_pre_33)) > none ? acc(MustInvokeUnbounded(t_pre_33), write) : acc(MustInvokeCredit(t_pre_33), write)))] && (acc(gap_io(t_pre_33), write) && [acc(MustTerminate(_cthread_149), write), true])
+  requires [true, Measure$check(_caller_measures_149, _cthread_149, 1) || perm(MustTerminate(_cthread_149)) == none && ((forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_5: Ref [_r_5.MustReleaseBounded] :: Level(_r_5) <= _current_wait_level_149) && ((forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: Level(_r_5) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  ensures issubtype(typeof(_res), Place())
+  ensures acc(MustInvokeCredit(old(get__gap_io__t_post_32(t_pre_33))), write) && Place___eq__(old(get__gap_io__t_post_32(t_pre_33)), _res)
+{
+  var _cwl_149: Perm
+  _res := null
+  inhale false
+}
+
+method End(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, t_pre_34: Ref) returns (_current_wait_level_150: Perm, _res: Ref)
+  requires _cthread_150 != null
+  requires issubtype(typeof(_cthread_150), Thread_0())
+  requires issubtype(typeof(t_pre_34), Place())
+  requires [acc(MustInvokeBounded(t_pre_34), write), (perm(MustInvokeBounded(t_pre_34)) > none && Measure$check(_caller_measures_150, t_pre_34, 1) ? acc(MustInvokeBounded(t_pre_34), write) : (perm(MustInvokeUnbounded(t_pre_34)) > none ? acc(MustInvokeUnbounded(t_pre_34), write) : acc(MustInvokeCredit(t_pre_34), write)))] && (acc(end_io(t_pre_34), write) && [acc(MustTerminate(_cthread_150), write), true])
+  requires [true, Measure$check(_caller_measures_150, _cthread_150, 1) || perm(MustTerminate(_cthread_150)) == none && ((forperm _r_8: Ref [MustInvokeBounded(_r_8)] :: false) && ((forperm _r_8: Ref [MustInvokeUnbounded(_r_8)] :: false) && ((forperm _r_8: Ref [_r_8.MustReleaseBounded] :: false) && (forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_7: Ref [_r_7.MustReleaseBounded] :: Level(_r_7) <= _current_wait_level_150) && ((forperm _r_7: Ref [_r_7.MustReleaseUnbounded] :: Level(_r_7) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  ensures issubtype(typeof(_res), Place())
+{
+  var _cwl_150: Perm
+  _res := null
+  inhale false
+}
+
+method SetVar(_cthread_151: Ref, _caller_measures_151: Seq[Measure$], _residue_151: Perm, t_pre_35: Ref, value_21: Ref) returns (_current_wait_level_151: Perm, _res: Ref)
+  requires _cthread_151 != null
+  requires issubtype(typeof(_cthread_151), Thread_0())
+  requires issubtype(typeof(t_pre_35), Place())
+  requires issubtype(typeof(value_21), int())
+  requires [acc(MustInvokeBounded(t_pre_35), write), (perm(MustInvokeBounded(t_pre_35)) > none && Measure$check(_caller_measures_151, t_pre_35, 1) ? acc(MustInvokeBounded(t_pre_35), write) : (perm(MustInvokeUnbounded(t_pre_35)) > none ? acc(MustInvokeUnbounded(t_pre_35), write) : acc(MustInvokeCredit(t_pre_35), write)))] && (acc(set_var_io(t_pre_35, int___unbox__(value_21)), write) && [acc(MustTerminate(_cthread_151), write), true])
+  requires [true, Measure$check(_caller_measures_151, _cthread_151, 1) || perm(MustTerminate(_cthread_151)) == none && ((forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_9: Ref [_r_9.MustReleaseBounded] :: Level(_r_9) <= _current_wait_level_151) && ((forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: Level(_r_9) <= _current_wait_level_151) && _residue_151 <= _current_wait_level_151), true]
+  ensures issubtype(typeof(_res), tuple(Seq(int(), Place())))
+  ensures [acc(MustInvokeUnbounded(old(get__set_var_io__t_post_33(t_pre_35, int___unbox__(value_21)))), write), (perm(MustInvokeUnbounded(old(get__set_var_io__t_post_33(t_pre_35, int___unbox__(value_21))))) > none ? acc(MustInvokeUnbounded(old(get__set_var_io__t_post_33(t_pre_35, int___unbox__(value_21)))), write) : acc(MustInvokeCredit(old(get__set_var_io__t_post_33(t_pre_35, int___unbox__(value_21)))), write))] && (Place___eq__(old(get__set_var_io__t_post_33(t_pre_35, int___unbox__(value_21))), tuple___getitem__(_res, 1)) && (int___eq__(__prim__int___box__(old(get__set_var_io__result_0(t_pre_35, int___unbox__(value_21)))), tuple___getitem__(_res, 0)) && int___eq__(value_21, __prim__int___box__(old(get__set_var_io__result_0(t_pre_35, int___unbox__(value_21)))))))
+{
+  var _cwl_151: Perm
+  _res := null
+  inhale false
+}
+
+method Eval(_cthread_152: Ref, _caller_measures_152: Seq[Measure$], _residue_152: Perm, t_pre_36: Ref, func: Function, arg: Ref) returns (_current_wait_level_152: Perm, _res: Ref)
+  requires _cthread_152 != null
+  requires issubtype(typeof(_cthread_152), Thread_0())
+  requires issubtype(typeof(t_pre_36), Place())
+  requires issubtype(typeof(arg), typeof(arg))
+  requires [acc(MustInvokeBounded(t_pre_36), write), (perm(MustInvokeBounded(t_pre_36)) > none && Measure$check(_caller_measures_152, t_pre_36, 1) ? acc(MustInvokeBounded(t_pre_36), write) : (perm(MustInvokeUnbounded(t_pre_36)) > none ? acc(MustInvokeUnbounded(t_pre_36), write) : acc(MustInvokeCredit(t_pre_36), write)))] && (acc(eval_io(t_pre_36, func, arg), write) && [acc(MustTerminate(_cthread_152), write), true])
+  requires [true, Measure$check(_caller_measures_152, _cthread_152, 1) || perm(MustTerminate(_cthread_152)) == none && ((forperm _r_12: Ref [MustInvokeBounded(_r_12)] :: false) && ((forperm _r_12: Ref [MustInvokeUnbounded(_r_12)] :: false) && ((forperm _r_12: Ref [_r_12.MustReleaseBounded] :: false) && (forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_11: Ref [_r_11.MustReleaseBounded] :: Level(_r_11) <= _current_wait_level_152) && ((forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: Level(_r_11) <= _current_wait_level_152) && _residue_152 <= _current_wait_level_152), true]
+  ensures issubtype(typeof(_res), tuple(Seq(object(), Place())))
+  ensures [acc(MustInvokeUnbounded(old(get__eval_io__t_post_34(t_pre_36, func, arg))), write), (perm(MustInvokeUnbounded(old(get__eval_io__t_post_34(t_pre_36, func, arg)))) > none ? acc(MustInvokeUnbounded(old(get__eval_io__t_post_34(t_pre_36, func, arg))), write) : acc(MustInvokeCredit(old(get__eval_io__t_post_34(t_pre_36, func, arg))), write))] && (old(get__eval_io__t_post_34(t_pre_36, func, arg)) == tuple___getitem__(_res, 1) && old(get__eval_io__result_1(t_pre_36, func, arg)) == tuple___getitem__(_res, 0))
+{
+  var _cwl_152: Perm
+  _res := null
+  inhale false
+}
+
+method main(_cthread_153: Ref, _caller_measures_153: Seq[Measure$], _residue_153: Perm) returns (_current_wait_level_153: Perm)
+  requires _cthread_153 != null
+  requires issubtype(typeof(_cthread_153), Thread_0())
+  requires [true, perm(MustTerminate(_cthread_153)) == none && ((forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_13: Ref [_r_13.MustReleaseBounded] :: Level(_r_13) <= _current_wait_level_153) && ((forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: Level(_r_13) <= _current_wait_level_153) && _residue_153 <= _current_wait_level_153), true]
+  ensures [true, (forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) && ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) && ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) && (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false)))]
+{
+  var module_defined_0: Bool
+  var module_names_0: Set[_Name]
+  var module_defined_1: Bool
+  var module_names_1: Set[_Name]
+  var _cwl_153: Perm
+  var _method_measures_153: Seq[Measure$]
+  _method_measures_153 := Seq[Measure$]()
+  module_defined_0 := true
+  module_names_0 := Set[_Name]()
+  module_names_0 := (module_names_0 union Set(_single(3106082509126931487350218591)))
+  inhale acc(__file__()._val, 99 / 100) && issubtype(typeof(__file__()._val), str()) && issubtype(typeof(__file__()._val), str())
+  module_names_0 := (module_names_0 union Set(_single(2489530350921051593165922143)))
+  inhale acc(__name__()._val, 99 / 100) && issubtype(typeof(__name__()._val), str()) && issubtype(typeof(__name__()._val), str()) && str___eq__(str___create__(8, 2489249333222104298408468319), __name__()._val)
+  module_defined_1 := false
+  module_names_1 := Set[_Name]()
+  module_names_1 := (module_names_1 union Set(_single(3106082509126931487350218591)))
+  inhale acc(__file___0()._val, 99 / 100) && issubtype(typeof(__file___0()._val), str()) && issubtype(typeof(__file___0()._val), str())
+  module_names_1 := (module_names_1 union Set(_single(2489530350921051593165922143)))
+  inhale acc(__name___0()._val, 99 / 100) && issubtype(typeof(__name___0()._val), str()) && issubtype(typeof(__name___0()._val), str()) && !str___eq__(str___create__(8, 2489249333222104298408468319), __name___0()._val)
+  module_names_0 := (module_names_0 union Set(_single(3939413879042314935)))
+  module_names_0 := (module_names_0 union Set(_single(1701999952)))
+  module_names_0 := (module_names_0 union Set(_single(4231737769045301934)))
+  if (!module_defined_1) {
+    module_defined_1 := true
+    module_names_1 := (module_names_1 union Set(_single(4276317748909243633618411843)))
+    module_names_1 := (module_names_1 union Set(_single(3906937610535144108)))
+    module_names_1 := (module_names_1 union Set(_single(3686932966091490988)))
+    module_names_1 := (module_names_1 union Set(_single(11116006324067352974226974112924930237)))
+    module_names_1 := (module_names_1 union Set(_single(4264095844347449787)))
+    module_names_1 := (module_names_1 union Set(_single(4158991341743806393)))
+    module_names_1 := (module_names_1 union Set(_single(4231737769045301934)))
+    module_names_1 := (module_names_1 union Set(_single(7136376649266381199951095122)))
+    module_names_1 := (module_names_1 union Set(_single(3870888504780163997)))
+    module_names_1 := (module_names_1 union Set(_single(7364236416608623017735835465)))
+    module_names_1 := (module_names_1 union Set(_single(7364236435055367091445387081)))
+    module_names_1 := (module_names_1 union Set(_single(7364236453502111165154938697)))
+    module_names_1 := (module_names_1 union Set(_single(7025051079424386845369126729)))
+    module_names_1 := (module_names_1 union Set(_single(3580562418798859184)))
+    module_names_1 := (module_names_1 union Set(_single(6670569014612377719754876244)))
+    module_names_1 := (module_names_1 union Set(_single(3654029152917688460)))
+    module_names_1 := (module_names_1 union Set(_single(5460990052674857173734662115181759155)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(6050123938192595908143574894)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(1884254030)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(5589826673346550058105729139)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(3798285583073382317)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(4009365936197243030)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(1852403530)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(3438674358163185305)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(7364935)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(3436992650834317723)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(6581829)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(2348609963811769505312695667)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(3114983555345390253)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(3936186279839828379)))
+    assert true
+    module_names_1 := (module_names_1 union Set(_single(1818326597)))
+  }
+  assert (_single(3436992650834317723) in module_names_1)
+  module_names_0 := (module_names_0 union Set(_single(3436992650834317723)))
+  assert (_single(3438674358163185305) in module_names_1)
+  module_names_0 := (module_names_0 union Set(_single(3438674358163185305)))
+  assert (_single(6050123938192595908143574894) in module_names_1)
+  module_names_0 := (module_names_0 union Set(_single(6050123938192595908143574894)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(7889261)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(6460812873825364059425627545950854798)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(2535827045181069271853481620016479503389716334)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(13929936631050655866146065139414964876)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(165022002142346987235167854009368605330851616609846404150512409281115033757)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(11224193606505639887654291177494381417989104673263229580)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(71987138893190264687214340726648312210366085226194181545694291316)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(17354175718588278470072943244499253428837856211330964108)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(85151175333369966542626914041713483214989061891631114744296072564)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23484157876342843134011719824652262158418639214814730892)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(98315211773549668352367561296526177599408474570723190733037331828)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(4478258928684895524186717251842120332)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(5142872926267868450817275713257511564)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(5807486923850841377447834174672902796)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(6472100911530294003630408487882496652)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(7136714909113266930260966949297887884)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(7801328906696239856891525410713279116)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(8465942904279212783522083872128670348)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(9130556901862185710152642333544061580)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(9795170899445158636783200794959452812)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(4478262731636696208874921741951736460)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597478014917549343544758184448691010366825844)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597565127203481103791404808348193543028958580)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597652239489412864038051432247696075691091316)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597739351775344624284698056147198608353224052)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597826464061276384531344680046701141015356788)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23597913576347208144777991303946203673677489524)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23598000688633139905024637927845706206339622260)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23598087800919071665271284551745208739001754996)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(23598174913205003425517931175644711271663887732)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(38792881722114776284259444739425330356796984861923870310403368308)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(39204257861445077794798187035064667983042668828332265276240520564)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(39615634000775379305336929330704005609288352794740660242077672820)))
+  goto __end
+  label __end
+}
+
+method random_bool_io__termination_check(t_pre: Ref)
+  requires issubtype(typeof(t_pre), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method non_terminating_io__termination_check(t_pre_0: Ref)
+  requires issubtype(typeof(t_pre_0), Place())
+{
+  // Termination measure must be positive.assert false ==> 1 > 0
+}
+
+method terminating_io__termination_check(t_pre_1: Ref)
+  requires issubtype(typeof(t_pre_1), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method conditionally_terminating_io__termination_check(t_pre_2: Ref, value_0: Bool)
+  requires issubtype(typeof(t_pre_2), Place())
+{
+  // Termination measure must be positive.assert value_0 ==> 1 > 0
+}
+
+method test_measure_io1_basic__termination_check(t_pre_3: Ref, value_1: Int)
+  requires issubtype(typeof(t_pre_3), Place())
+{
+  // Termination measure must be positive.assert true ==> int___unbox__(max_1(__prim__int___box__(value_1), __prim__int___box__(1))) > 0
+}
+
+method test_measure_io1_non_basic__termination_check(t_pre_4: Ref, value_2: Int)
+  requires issubtype(typeof(t_pre_4), Place())
+{
+  // Termination measure must be positive.assert true ==> int___unbox__(max_1(__prim__int___box__(value_2), __prim__int___box__(2))) > 0
+  // Termination condition of no_op_io (62:11).assert true ==> true
+  // Termination measure of no_op_io (62:11).assert true ==> int___unbox__(max_1(__prim__int___box__(value_2), __prim__int___box__(2))) > 1
+}
+
+method test_measure_io2_basic__termination_check(t_pre_5: Ref, value_3: Int)
+  requires issubtype(typeof(t_pre_5), Place())
+{
+  // Termination measure must be positive.assert false ==> value_3 > 0
+}
+
+method test_measure_io2_non_basic__termination_check(t_pre_6: Ref, value_4: Int)
+  requires issubtype(typeof(t_pre_6), Place())
+{
+  // Termination measure must be positive.assert false ==> value_4 > 0
+  // Termination condition of no_op_io (77:11).assert false ==> true
+  // Termination measure of no_op_io (77:11).assert false ==> value_4 > 1
+}
+
+method test_measure_io3_basic__termination_check(t_pre_7: Ref, value_5: Int)
+  requires issubtype(typeof(t_pre_7), Place())
+{
+  // Termination measure must be positive.assert true ==> value_5 > 0
+}
+
+method test_measure_io3_non_basic__termination_check(t_pre_8: Ref, value_6: Int)
+  requires issubtype(typeof(t_pre_8), Place())
+{
+  // Termination measure must be positive.assert true ==> value_6 > 0
+  // Termination condition of no_op_io (97:11).assert true ==> true
+  // Termination measure of no_op_io (97:11).assert true ==> value_6 > 1
+}
+
+method test_gap_io1__termination_check(t_pre_9: Ref)
+  requires issubtype(typeof(t_pre_9), Place())
+{
+  // Termination measure must be positive.assert false ==> 2 > 0
+  // Gap at gap_io (106:11).assert false ==> false
+  // Termination condition of gap_io (106:11).assert false ==> true
+  // Termination measure of gap_io (106:11).assert false ==> 2 > 1
+}
+
+method test_gap_io2__termination_check(t_pre_10: Ref)
+  requires issubtype(typeof(t_pre_10), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Gap at gap_io (115:11).assert true ==> false
+  // Termination condition of gap_io (115:11).assert true ==> true
+  // Termination measure of gap_io (115:11).assert true ==> 2 > 1
+}
+
+method test_gap_io3__termination_check(t_pre_11: Ref, value_7: Bool)
+  requires issubtype(typeof(t_pre_11), Place())
+{
+  // Termination measure must be positive.assert value_7 ==> 2 > 0
+  // Gap at gap_io (125:27).assert value_7 && value_7 ==> false
+  // Termination condition of gap_io (125:27).assert value_7 && value_7 ==> true
+  // Termination measure of gap_io (125:27).assert value_7 && value_7 ==> 2 > 1
+  // Termination condition of no_op_io (126:12).assert value_7 ==> true
+  // Termination measure of no_op_io (126:12).assert value_7 ==> 2 > 1
+}
+
+method test_gap_io4__termination_check(t_pre_12: Ref, value_8: Bool)
+  requires issubtype(typeof(t_pre_12), Place())
+{
+  // Termination measure must be positive.assert value_8 ==> 2 > 0
+  // Gap at gap_io (135:31).assert value_8 && !value_8 ==> false
+  // Termination condition of gap_io (135:31).assert value_8 && !value_8 ==> true
+  // Termination measure of gap_io (135:31).assert value_8 && !value_8 ==> 2 > 1
+  // Termination condition of no_op_io (136:16).assert value_8 ==> true
+  // Termination measure of no_op_io (136:16).assert value_8 ==> 2 > 1
+}
+
+method test_gap_io5__termination_check(t_pre_13: Ref, value_9: Bool)
+  requires issubtype(typeof(t_pre_13), Place())
+{
+  // Termination measure must be positive.assert value_9 ==> 2 > 0
+  // Gap at gap_io (146:11).assert value_9 && value_9 ==> false
+  // Termination condition of gap_io (146:11).assert value_9 && value_9 ==> true
+  // Termination measure of gap_io (146:11).assert value_9 && value_9 ==> 2 > 1
+  // Termination condition of no_op_io (146:47).assert value_9 && !value_9 ==> true
+  // Termination measure of no_op_io (146:47).assert value_9 && !value_9 ==> 2 > 1
+}
+
+method test_gap_io6__termination_check(t_pre_14: Ref, value_10: Bool)
+  requires issubtype(typeof(t_pre_14), Place())
+{
+  // Termination measure must be positive.assert value_10 ==> 2 > 0
+  // Gap at gap_io (155:11).assert value_10 && !value_10 ==> false
+  // Termination condition of gap_io (155:11).assert value_10 && !value_10 ==> true
+  // Termination measure of gap_io (155:11).assert value_10 && !value_10 ==> 2 > 1
+  // Termination condition of no_op_io (155:51).assert value_10 && !!value_10 ==> true
+  // Termination measure of no_op_io (155:51).assert value_10 && !!value_10 ==> 2 > 1
+}
+
+method test_gap_io7__termination_check(t_pre_15: Ref, value_11: Bool)
+  requires issubtype(typeof(t_pre_15), Place())
+{
+  // Termination measure must be positive.assert value_11 ==> 2 > 0
+  // Termination condition of no_op_io (166:12).assert value_11 ==> true
+  // Termination measure of no_op_io (166:12).assert value_11 ==> 2 > 1
+  // Gap at gap_io (167:31).assert value_11 && !value_11 ==> false
+  // Termination condition of gap_io (167:31).assert value_11 && !value_11 ==> true
+  // Termination measure of gap_io (167:31).assert value_11 && !value_11 ==> 2 > 1
+  // Termination condition of no_op_io (168:12).assert value_11 ==> true
+  // Termination measure of no_op_io (168:12).assert value_11 ==> 2 > 1
+  // Termination condition of no_op_io (169:12).assert value_11 ==> true
+  // Termination measure of no_op_io (169:12).assert value_11 ==> 2 > 1
+}
+
+method test_gap_io8__termination_check(t_pre_16: Ref, value_12: Bool)
+  requires issubtype(typeof(t_pre_16), Place())
+{
+  // Termination measure must be positive.assert value_12 ==> 2 > 0
+  // Termination condition of no_op_io (182:12).assert value_12 ==> true
+  // Termination measure of no_op_io (182:12).assert value_12 ==> 2 > 1
+  // Gap at gap_io (184:27).assert value_12 && value_12 ==> false
+  // Termination condition of gap_io (184:27).assert value_12 && value_12 ==> true
+  // Termination measure of gap_io (184:27).assert value_12 && value_12 ==> 2 > 1
+  // Termination condition of no_op_io (185:12).assert value_12 ==> true
+  // Termination measure of no_op_io (185:12).assert value_12 ==> 2 > 1
+  // Termination condition of no_op_io (186:12).assert value_12 ==> true
+  // Termination measure of no_op_io (186:12).assert value_12 ==> 2 > 1
+}
+
+method test_gap_io9__termination_check(t_pre_17: Ref)
+  requires issubtype(typeof(t_pre_17), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of random_bool_io (198:12).assert true ==> true
+  // Termination measure of random_bool_io (198:12).assert true ==> 2 > 1
+  // Gap at gap_io (200:27).assert true && get__random_bool_io__value(t_pre_17) ==> false
+  // Termination condition of gap_io (200:27).assert true && get__random_bool_io__value(t_pre_17) ==> true
+  // Termination measure of gap_io (200:27).assert true && get__random_bool_io__value(t_pre_17) ==> 2 > 1
+  // Termination condition of no_op_io (201:12).assert true ==> true
+  // Termination measure of no_op_io (201:12).assert true ==> 2 > 1
+  // Termination condition of no_op_io (202:12).assert true ==> true
+  // Termination measure of no_op_io (202:12).assert true ==> 2 > 1
+}
+
+method test_gap_io10__termination_check(t_pre_18: Ref)
+  requires issubtype(typeof(t_pre_18), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of end_io (211:11).assert true ==> true
+  // Termination measure of end_io (211:11).assert true ==> 2 > 1
+}
+
+method test_condition_io1__termination_check(t_pre_19: Ref, value_13: Bool)
+  requires issubtype(typeof(t_pre_19), Place())
+{
+  // Termination measure must be positive.assert value_13 ==> 2 > 0
+  // Termination condition of non_terminating_io (223:11).assert value_13 ==> false
+  // Termination measure of non_terminating_io (223:11).assert value_13 ==> 2 > 1
+}
+
+method test_condition_io2__termination_check(t_pre_20: Ref, value_14: Bool)
+  requires issubtype(typeof(t_pre_20), Place())
+{
+  // Termination measure must be positive.assert value_14 ==> 2 > 0
+  // Termination condition of terminating_io (232:11).assert value_14 ==> true
+  // Termination measure of terminating_io (232:11).assert value_14 ==> 2 > 1
+}
+
+method test_condition_io3__termination_check(t_pre_21: Ref, value_15: Bool)
+  requires issubtype(typeof(t_pre_21), Place())
+{
+  // Termination measure must be positive.assert value_15 ==> 2 > 0
+  // Termination condition of conditionally_terminating_io (241:11).assert value_15 ==> value_15
+  // Termination measure of conditionally_terminating_io (241:11).assert value_15 ==> 2 > 1
+}
+
+method test_condition_io4__termination_check(t_pre_22: Ref, value_16: Bool)
+  requires issubtype(typeof(t_pre_22), Place())
+{
+  // Termination measure must be positive.assert value_16 ==> 2 > 0
+  // Termination condition of non_terminating_io (251:27).assert value_16 && value_16 ==> false
+  // Termination measure of non_terminating_io (251:27).assert value_16 && value_16 ==> 2 > 1
+  // Termination condition of no_op_io (252:12).assert value_16 ==> true
+  // Termination measure of no_op_io (252:12).assert value_16 ==> 2 > 1
+}
+
+method test_condition_io5__termination_check(t_pre_23: Ref, value_17: Bool)
+  requires issubtype(typeof(t_pre_23), Place())
+{
+  // Termination measure must be positive.assert value_17 ==> 2 > 0
+  // Termination condition of non_terminating_io (261:31).assert value_17 && !value_17 ==> false
+  // Termination measure of non_terminating_io (261:31).assert value_17 && !value_17 ==> 2 > 1
+  // Termination condition of no_op_io (262:12).assert value_17 ==> true
+  // Termination measure of no_op_io (262:12).assert value_17 ==> 2 > 1
+}
+
+method test_condition_io6__termination_check(t_pre_24: Ref)
+  requires issubtype(typeof(t_pre_24), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of random_bool_io (272:12).assert true ==> true
+  // Termination measure of random_bool_io (272:12).assert true ==> 2 > 1
+  // Termination condition of non_terminating_io (274:27).assert true && get__random_bool_io__value(t_pre_24) ==> false
+  // Termination measure of non_terminating_io (274:27).assert true && get__random_bool_io__value(t_pre_24) ==> 2 > 1
+  // Termination condition of no_op_io (275:12).assert true ==> true
+  // Termination measure of no_op_io (275:12).assert true ==> 2 > 1
+  // Termination condition of no_op_io (276:12).assert true ==> true
+  // Termination measure of no_op_io (276:12).assert true ==> 2 > 1
+}
+
+method test_condition_io7__termination_check(t_pre_25: Ref)
+  requires issubtype(typeof(t_pre_25), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of random_bool_io (288:12).assert true ==> true
+  // Termination measure of random_bool_io (288:12).assert true ==> 2 > 1
+  // Termination condition of non_terminating_io (290:31).assert true && !get__random_bool_io__value(t_pre_25) ==> false
+  // Termination measure of non_terminating_io (290:31).assert true && !get__random_bool_io__value(t_pre_25) ==> 2 > 1
+  // Termination condition of no_op_io (291:12).assert true ==> true
+  // Termination measure of no_op_io (291:12).assert true ==> 2 > 1
+  // Termination condition of no_op_io (292:12).assert true ==> true
+  // Termination measure of no_op_io (292:12).assert true ==> 2 > 1
+}
+
+method test_condition_io8__termination_check(t_pre_26: Ref)
+  requires issubtype(typeof(t_pre_26), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of random_bool_io (304:12).assert true ==> true
+  // Termination measure of random_bool_io (304:12).assert true ==> 2 > 1
+  // Termination condition of conditionally_terminating_io (306:12).assert true ==> get__random_bool_io__value(t_pre_26)
+  // Termination measure of conditionally_terminating_io (306:12).assert true ==> 2 > 1
+  // Termination condition of no_op_io (307:12).assert true ==> true
+  // Termination measure of no_op_io (307:12).assert true ==> 2 > 1
+}
+
+method test_condition_io9__termination_check(t_pre_27: Ref)
+  requires issubtype(typeof(t_pre_27), Place())
+{
+  // Termination measure must be positive.assert true ==> 2 > 0
+  // Termination condition of random_bool_io (319:12).assert true ==> true
+  // Termination measure of random_bool_io (319:12).assert true ==> 2 > 1
+  // Termination condition of conditionally_terminating_io (320:27).assert true && get__random_bool_io__value(t_pre_27) ==> get__random_bool_io__value(t_pre_27)
+  // Termination measure of conditionally_terminating_io (320:27).assert true && get__random_bool_io__value(t_pre_27) ==> 2 > 1
+  // Termination condition of no_op_io (321:12).assert true ==> true
+  // Termination measure of no_op_io (321:12).assert true ==> 2 > 1
+  // Termination condition of no_op_io (322:12).assert true ==> true
+  // Termination measure of no_op_io (322:12).assert true ==> 2 > 1
+}
+
+method test_measure_decreasing_io1__termination_check(t_pre_28: Ref, value_18: Int)
+  requires issubtype(typeof(t_pre_28), Place())
+{
+  // Termination measure must be positive.assert true ==> int___unbox__(max_1(__prim__int___box__(value_18), __prim__int___box__(2))) > 0
+  // Termination condition of test_measure_decreasing_io1 (336:11).assert true ==> true
+  // Termination measure of test_measure_decreasing_io1 (336:11).assert true ==> int___unbox__(max_1(__prim__int___box__(value_18), __prim__int___box__(2))) > int___unbox__(max_1(__prim__int___box__(value_18), __prim__int___box__(2)))
+}
+
+method test_measure_decreasing_io2__termination_check(t_pre_29: Ref, value_19: Int)
+  requires issubtype(typeof(t_pre_29), Place())
+{
+  // Termination measure must be positive.assert true ==> int___unbox__(max_1(__prim__int___box__(value_19), __prim__int___box__(2))) > 0
+  // Termination condition of test_measure_decreasing_io2 (346:11).assert true ==> true
+  // Termination measure of test_measure_decreasing_io2 (346:11).assert true ==> int___unbox__(max_1(__prim__int___box__(value_19), __prim__int___box__(2))) > int___unbox__(max_1(__prim__int___box__(int___sub__(value_19, 1)), __prim__int___box__(2)))
+}
+
+method test_measure_decreasing_io3__termination_check(t_pre_30: Ref, value_20: Int)
+  requires issubtype(typeof(t_pre_30), Place())
+{
+  // Termination measure must be positive.assert true ==> int___unbox__(max_1(__prim__int___box__(int___add__(value_20, 2)), __prim__int___box__(2))) > 0
+  // Termination condition of test_measure_decreasing_io3 (355:12).assert true && int___gt__(value_20, 0) ==> true
+  // Termination measure of test_measure_decreasing_io3 (355:12).assert true && int___gt__(value_20, 0) ==> int___unbox__(max_1(__prim__int___box__(int___add__(value_20, 2)), __prim__int___box__(2))) > int___unbox__(max_1(__prim__int___box__(int___add__(int___sub__(value_20, 1), 2)), __prim__int___box__(2)))
+  // Termination condition of no_op_io (358:12).assert true && !int___gt__(value_20, 0) ==> true
+  // Termination measure of no_op_io (358:12).assert true && !int___gt__(value_20, 0) ==> int___unbox__(max_1(__prim__int___box__(int___add__(value_20, 2)), __prim__int___box__(2))) > 1
+}
+
+method no_op_io__termination_check(t_pre_37: Ref)
+  requires issubtype(typeof(t_pre_37), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method split_io__termination_check(t_pre_38: Ref)
+  requires issubtype(typeof(t_pre_38), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method join_io__termination_check(t_pre1_0: Ref, t_pre2_0: Ref)
+  requires issubtype(typeof(t_pre1_0), Place())
+  requires issubtype(typeof(t_pre2_0), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method gap_io__termination_check(t_pre_39: Ref)
+  requires issubtype(typeof(t_pre_39), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method end_io__termination_check(t_pre_40: Ref)
+  requires issubtype(typeof(t_pre_40), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method set_var_io__termination_check(t_pre_41: Ref, value_22: Int)
+  requires issubtype(typeof(t_pre_41), Place())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}
+
+method eval_io__termination_check(t_pre_42: Ref, func_0: Function, arg_13: Ref)
+  requires issubtype(typeof(t_pre_42), Place())
+  requires issubtype(typeof(arg_13), object())
+{
+  // Termination measure must be positive.assert true ==> 1 > 0
+}

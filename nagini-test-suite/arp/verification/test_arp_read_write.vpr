@@ -1,0 +1,1925 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function Place(): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function set_basic(): PyType
+  
+  function set(arg0: PyType): PyType
+  
+  function set_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function traceback(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function Sequence_basic(): PyType
+  
+  function Sequence(arg0: PyType): PyType
+  
+  function Sequence_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function slice(): PyType
+  
+  unique function range(): PyType
+  
+  unique function Iterator_basic(): PyType
+  
+  function Iterator(arg0: PyType): PyType
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function LevelType(): PyType
+  
+  unique function type(): PyType
+  
+  unique function __prim__Sequence_type(): PyType
+  
+  unique function Cell(): PyType
+  
+  unique function CellLock(): PyType
+  
+  unique function Writer(): PyType
+  
+  unique function Reader(): PyType
+  
+  unique function RWController(): PyType
+  
+  unique function Lock_basic(): PyType
+  
+  function Lock(arg0: PyType): PyType
+  
+  function Lock_arg(typ: PyType, index: Int): PyType
+  
+  unique function BaseLock(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType :: { set(var0) } extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) && get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_Sequence {
+    (forall var0: PyType :: { Sequence(var0) } extends_(Sequence(var0), object()) && get_basic(Sequence(var0)) == Sequence_basic())
+  }
+  
+  axiom Sequence_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Sequence(arg0)) ==> Sequence_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range {
+    extends_(range(), object()) && get_basic(range()) == range()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType :: { Iterator(var0) } extends_(Iterator(var0), object()) && get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype___prim__Sequence_type {
+    extends_(__prim__Sequence_type(), object()) && get_basic(__prim__Sequence_type()) == __prim__Sequence_type()
+  }
+  
+  axiom subtype_Cell {
+    extends_(Cell(), object()) && get_basic(Cell()) == Cell()
+  }
+  
+  axiom subtype_CellLock {
+    extends_(CellLock(), Lock(Cell())) && get_basic(CellLock()) == CellLock()
+  }
+  
+  axiom subtype_Writer {
+    extends_(Writer(), object()) && get_basic(Writer()) == Writer()
+  }
+  
+  axiom subtype_Reader {
+    extends_(Reader(), object()) && get_basic(Reader()) == Reader()
+  }
+  
+  axiom subtype_RWController {
+    extends_(RWController(), object()) && get_basic(RWController()) == RWController()
+  }
+  
+  axiom subtype_Lock {
+    (forall T: PyType :: { Lock(T) } extends_(Lock(T), BaseLock()) && get_basic(Lock(T)) == Lock_basic())
+  }
+  
+  axiom Lock_args0 {
+    (forall Z: PyType, arg0: PyType :: issubtype(Z, Lock(arg0)) ==> Lock_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_BaseLock {
+    extends_(BaseLock(), object()) && get_basic(BaseLock()) == BaseLock()
+  }
+}
+
+domain Thread {
+  
+  function getMethod(t: Ref): ThreadingID
+  
+  function getArg(t: Ref, i: Int): Ref
+  
+  function getOld(t: Ref, i: Int): Ref
+}
+
+domain Function {
+  
+  unique function get_locked(): Function
+}
+
+domain ThreadingID {
+  
+  unique function __init___threading(): ThreadingID
+  
+  unique function append_threading(): ThreadingID
+  
+  unique function extend_threading(): ThreadingID
+  
+  unique function reverse_threading(): ThreadingID
+  
+  unique function __setitem___threading(): ThreadingID
+  
+  unique function __iter___threading(): ThreadingID
+  
+  unique function __getitem_slice___threading(): ThreadingID
+  
+  unique function __add___threading(): ThreadingID
+  
+  unique function __mul___threading(): ThreadingID
+  
+  unique function __init___threading_0(): ThreadingID
+  
+  unique function add_threading(): ThreadingID
+  
+  unique function remove_threading(): ThreadingID
+  
+  unique function clear_threading(): ThreadingID
+  
+  unique function __iter___threading_0(): ThreadingID
+  
+  unique function __init___threading_1(): ThreadingID
+  
+  unique function keys_threading(): ThreadingID
+  
+  unique function __setitem___threading_0(): ThreadingID
+  
+  unique function __iter___threading_1(): ThreadingID
+  
+  unique function values_threading(): ThreadingID
+  
+  unique function split_threading(): ThreadingID
+  
+  unique function __iter___threading_2(): ThreadingID
+  
+  unique function __next___threading(): ThreadingID
+  
+  unique function __del___threading(): ThreadingID
+  
+  unique function __init___threading_2(): ThreadingID
+  
+  unique function write_threading(): ThreadingID
+  
+  unique function read_threading(): ThreadingID
+  
+  unique function __init___threading_3(): ThreadingID
+  
+  unique function do_write_threading(): ThreadingID
+  
+  unique function do_read_threading(): ThreadingID
+  
+  unique function __init___threading_4(): ThreadingID
+  
+  unique function acquire_threading(): ThreadingID
+  
+  unique function release_threading(): ThreadingID
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+  
+  axiom low_true {
+    (forall x: T :: { Low(x) } Low(x))
+  }
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain _Name {
+  
+  function _combine(n1: _Name, n2: _Name): _Name
+  
+  function _single(n: Int): _Name
+  
+  function _get_combined_prefix(n: _Name): _Name
+  
+  function _get_combined_name(n: _Name): _Name
+  
+  function _get_value(n: _Name): Int
+  
+  function _is_single(n: _Name): Bool
+  
+  axiom all_single_or_combined {
+    (forall n: _Name :: n == _single(_get_value(n)) || n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom single_is_single {
+    (forall i: Int :: { _single(i) } _is_single(_single(i)))
+  }
+  
+  axiom combined_is_not_single {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } !_is_single(_combine(n1, n2)))
+  }
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom decompose_combined_prefix {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_prefix(_combine(n1, n2)) == n1)
+  }
+  
+  axiom decompose_combined_name {
+    (forall n1: _Name, n2: _Name :: { _combine(n1, n2) } _get_combined_name(_combine(n1, n2)) == n2)
+  }
+}
+
+domain ARPLog {
+  
+  function ARPLog_Nil(): ARPLog
+  
+  function ARPLog_Cons(arp_quant_ref: Ref, arp_quant_fieldId: Int, permission: Perm, arp_quant_level: Int, arp_quant_log: ARPLog): ARPLog
+  
+  function ARPLog_head_ref_Cons(arp_quant_log: ARPLog): Ref
+  
+  function ARPLog_head_fieldId_Cons(arp_quant_log: ARPLog): Int
+  
+  function ARPLog_head_permission_Cons(arp_quant_log: ARPLog): Perm
+  
+  function ARPLog_head_level_Cons(arp_quant_log: ARPLog): Int
+  
+  function ARPLog_tail_Cons(arp_quant_log: ARPLog): ARPLog
+  
+  function ARPLog_type(arp_quant_log: ARPLog): Int
+  
+  unique function ARPLog_type_Nil(): Int
+  
+  unique function ARPLog_type_Cons(): Int
+  
+  function ARPLog_is_Nil(arp_quant_log: ARPLog): Bool
+  
+  function ARPLog_is_Cons(arp_quant_log: ARPLog): Bool
+  
+  function ARPLog_max_level(arp_quant_log: ARPLog): Int
+  
+  function ARPLog_sum_gt(arp_quant_ref: Ref, arp_quant_fieldId: Int, arp_quant_level: Int, arp_quant_log: ARPLog): Perm
+  
+  function ARPLog_sum(arp_quant_ref: Ref, arp_quant_fieldId: Int, arp_quant_level: Int, arp_quant_log: ARPLog): Perm
+  
+  axiom ARPLog_destruct_over_construct_Cons {
+    (forall arp_quant_head_ref: Ref, arp_quant_head_fieldId: Int, arp_quant_head_permission: Perm, arp_quant_head_level: Int, arp_quant_tail: ARPLog :: { ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail) } ARPLog_head_ref_Cons(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == arp_quant_head_ref && (ARPLog_head_fieldId_Cons(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == arp_quant_head_fieldId && (ARPLog_head_permission_Cons(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == arp_quant_head_permission && (ARPLog_head_level_Cons(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == arp_quant_head_level && ARPLog_tail_Cons(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == arp_quant_tail))))
+  }
+  
+  axiom ARPLog_construct_over_destruct_Cons {
+    (forall arp_quant_log: ARPLog :: { ARPLog_head_ref_Cons(arp_quant_log) } { ARPLog_head_fieldId_Cons(arp_quant_log) } { ARPLog_head_permission_Cons(arp_quant_log) } { ARPLog_head_level_Cons(arp_quant_log) } { ARPLog_tail_Cons(arp_quant_log) } ARPLog_is_Cons(arp_quant_log) ==> arp_quant_log == ARPLog_Cons(ARPLog_head_ref_Cons(arp_quant_log), ARPLog_head_fieldId_Cons(arp_quant_log), ARPLog_head_permission_Cons(arp_quant_log), ARPLog_head_level_Cons(arp_quant_log), ARPLog_tail_Cons(arp_quant_log)))
+  }
+  
+  axiom ARPLog_type_of_Nil {
+    ARPLog_type(ARPLog_Nil()) == ARPLog_type_Nil()
+  }
+  
+  axiom ARPLog_type_of_Cons {
+    (forall arp_quant_head_ref: Ref, arp_quant_head_fieldId: Int, arp_quant_head_permission: Perm, arp_quant_head_level: Int, arp_quant_tail: ARPLog :: ARPLog_type(ARPLog_Cons(arp_quant_head_ref, arp_quant_head_fieldId, arp_quant_head_permission, arp_quant_head_level, arp_quant_tail)) == ARPLog_type_Cons())
+  }
+  
+  axiom ARPLog_type_existence {
+    (forall arp_quant_log: ARPLog :: { ARPLog_is_Nil(arp_quant_log) } { ARPLog_is_Cons(arp_quant_log) } { ARPLog_type(arp_quant_log) } ARPLog_type(arp_quant_log) == ARPLog_type_Nil() || ARPLog_type(arp_quant_log) == ARPLog_type_Cons())
+  }
+  
+  axiom ARPLog_type_is_Nil {
+    (forall arp_quant_log: ARPLog :: { ARPLog_is_Nil(arp_quant_log) } { ARPLog_type(arp_quant_log) } (ARPLog_type(arp_quant_log) == ARPLog_type_Nil()) == ARPLog_is_Nil(arp_quant_log))
+  }
+  
+  axiom ARPLog_type_is_Cons {
+    (forall arp_quant_log: ARPLog :: { ARPLog_is_Cons(arp_quant_log) } { ARPLog_type(arp_quant_log) } (ARPLog_type(arp_quant_log) == ARPLog_type_Cons()) == ARPLog_is_Cons(arp_quant_log))
+  }
+  
+  axiom ARPLog_log_max_level {
+    (forall arp_quant_log: ARPLog :: { ARPLog_max_level(arp_quant_log) } ARPLog_max_level(arp_quant_log) == 6)
+  }
+  
+  axiom ARPLog_sum_gt_of_log {
+    (forall arp_quant_ref: Ref, arp_quant_fieldId: Int, arp_quant_level: Int, arp_quant_log: ARPLog :: { ARPLog_sum_gt(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) } (arp_quant_level >= ARPLog_max_level(arp_quant_log) ==> ARPLog_sum_gt(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) == none) && (arp_quant_level < ARPLog_max_level(arp_quant_log) ==> ARPLog_sum_gt(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) == ARPLog_sum_gt(arp_quant_ref, arp_quant_fieldId, arp_quant_level + 1, arp_quant_log) + ARPLog_sum(arp_quant_ref, arp_quant_fieldId, arp_quant_level + 1, arp_quant_log)))
+  }
+  
+  axiom ARPLog_sum_of_log {
+    (forall arp_quant_ref: Ref, arp_quant_fieldId: Int, arp_quant_level: Int, arp_quant_log: ARPLog :: { ARPLog_sum(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) } (ARPLog_is_Nil(arp_quant_log) ==> ARPLog_sum(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) == none) && (ARPLog_is_Cons(arp_quant_log) ==> ARPLog_sum(arp_quant_ref, arp_quant_fieldId, arp_quant_level, arp_quant_log) == ARPLog_sum(arp_quant_ref, arp_quant_fieldId, arp_quant_level, ARPLog_tail_Cons(arp_quant_log)) + (ARPLog_head_ref_Cons(arp_quant_log) == arp_quant_ref && (ARPLog_head_fieldId_Cons(arp_quant_log) == arp_quant_fieldId && ARPLog_head_level_Cons(arp_quant_log) == arp_quant_level) ? ARPLog_head_permission_Cons(arp_quant_log) : none)))
+  }
+}
+
+domain ARP_field_functions {
+  
+  unique function field__val(): Int
+  
+  unique function field___container(): Int
+  
+  unique function field___iter_index(): Int
+  
+  unique function field___previous(): Int
+  
+  unique function field_list_acc(): Int
+  
+  unique function field_set_acc(): Int
+  
+  unique function field_dict_acc(): Int
+  
+  unique function field_Measure$acc(): Int
+  
+  unique function field_Cell_value(): Int
+  
+  unique function field_Cell_rds(): Int
+  
+  unique function field_RWController_c(): Int
+  
+  unique function field_RWController_lock(): Int
+  
+  function predicate__thread_start(t: Ref): Int
+  
+  function predicate__thread_post(t: Ref): Int
+  
+  function predicate__MaySet(rec: Ref, id: Int): Int
+  
+  function predicate_Lock_invariant(self_10: Ref): Int
+  
+  axiom ARP__thread_start__val {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field__val())
+  }
+  
+  axiom ARP__thread_start___container {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field___container())
+  }
+  
+  axiom ARP__thread_start___iter_index {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field___iter_index())
+  }
+  
+  axiom ARP__thread_start___previous {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field___previous())
+  }
+  
+  axiom ARP__thread_start_list_acc {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_list_acc())
+  }
+  
+  axiom ARP__thread_start_set_acc {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_set_acc())
+  }
+  
+  axiom ARP__thread_start_dict_acc {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_dict_acc())
+  }
+  
+  axiom ARP__thread_start_Measure$acc {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_Measure$acc())
+  }
+  
+  axiom ARP__thread_start_Cell_value {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_Cell_value())
+  }
+  
+  axiom ARP__thread_start_Cell_rds {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_Cell_rds())
+  }
+  
+  axiom ARP__thread_start_RWController_c {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_RWController_c())
+  }
+  
+  axiom ARP__thread_start_RWController_lock {
+    (forall t: Ref :: { predicate__thread_start(t) } predicate__thread_start(t) != field_RWController_lock())
+  }
+  
+  axiom ARP__thread_start__thread_post {
+    (forall t: Ref, t_1: Ref :: { predicate__thread_start(t),predicate__thread_post(t_1) } predicate__thread_start(t) != predicate__thread_post(t_1))
+  }
+  
+  axiom ARP__thread_start__MaySet {
+    (forall t: Ref, rec_0: Ref, id_0: Int :: { predicate__thread_start(t),predicate__MaySet(rec_0, id_0) } predicate__thread_start(t) != predicate__MaySet(rec_0, id_0))
+  }
+  
+  axiom ARP__thread_start_Lock_invariant {
+    (forall t: Ref, self_10_0: Ref :: { predicate__thread_start(t),predicate_Lock_invariant(self_10_0) } predicate__thread_start(t) != predicate_Lock_invariant(self_10_0))
+  }
+  
+  axiom ARP__thread_start {
+    (forall t: Ref, t_0: Ref :: { predicate__thread_start(t),predicate__thread_start(t_0) } predicate__thread_start(t) == predicate__thread_start(t_0) ==> t == t_0)
+  }
+  
+  axiom ARP__thread_post__val {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field__val())
+  }
+  
+  axiom ARP__thread_post___container {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field___container())
+  }
+  
+  axiom ARP__thread_post___iter_index {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field___iter_index())
+  }
+  
+  axiom ARP__thread_post___previous {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field___previous())
+  }
+  
+  axiom ARP__thread_post_list_acc {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_list_acc())
+  }
+  
+  axiom ARP__thread_post_set_acc {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_set_acc())
+  }
+  
+  axiom ARP__thread_post_dict_acc {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_dict_acc())
+  }
+  
+  axiom ARP__thread_post_Measure$acc {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_Measure$acc())
+  }
+  
+  axiom ARP__thread_post_Cell_value {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_Cell_value())
+  }
+  
+  axiom ARP__thread_post_Cell_rds {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_Cell_rds())
+  }
+  
+  axiom ARP__thread_post_RWController_c {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_RWController_c())
+  }
+  
+  axiom ARP__thread_post_RWController_lock {
+    (forall t: Ref :: { predicate__thread_post(t) } predicate__thread_post(t) != field_RWController_lock())
+  }
+  
+  axiom ARP__thread_post__thread_start {
+    (forall t: Ref, t_3: Ref :: { predicate__thread_post(t),predicate__thread_start(t_3) } predicate__thread_post(t) != predicate__thread_start(t_3))
+  }
+  
+  axiom ARP__thread_post__MaySet {
+    (forall t: Ref, rec_1: Ref, id_1: Int :: { predicate__thread_post(t),predicate__MaySet(rec_1, id_1) } predicate__thread_post(t) != predicate__MaySet(rec_1, id_1))
+  }
+  
+  axiom ARP__thread_post_Lock_invariant {
+    (forall t: Ref, self_10_1: Ref :: { predicate__thread_post(t),predicate_Lock_invariant(self_10_1) } predicate__thread_post(t) != predicate_Lock_invariant(self_10_1))
+  }
+  
+  axiom ARP__thread_post {
+    (forall t: Ref, t_2: Ref :: { predicate__thread_post(t),predicate__thread_post(t_2) } predicate__thread_post(t) == predicate__thread_post(t_2) ==> t == t_2)
+  }
+  
+  axiom ARP__MaySet__val {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field__val())
+  }
+  
+  axiom ARP__MaySet___container {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field___container())
+  }
+  
+  axiom ARP__MaySet___iter_index {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field___iter_index())
+  }
+  
+  axiom ARP__MaySet___previous {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field___previous())
+  }
+  
+  axiom ARP__MaySet_list_acc {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_list_acc())
+  }
+  
+  axiom ARP__MaySet_set_acc {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_set_acc())
+  }
+  
+  axiom ARP__MaySet_dict_acc {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_dict_acc())
+  }
+  
+  axiom ARP__MaySet_Measure$acc {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_Measure$acc())
+  }
+  
+  axiom ARP__MaySet_Cell_value {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_Cell_value())
+  }
+  
+  axiom ARP__MaySet_Cell_rds {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_Cell_rds())
+  }
+  
+  axiom ARP__MaySet_RWController_c {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_RWController_c())
+  }
+  
+  axiom ARP__MaySet_RWController_lock {
+    (forall rec: Ref, id: Int :: { predicate__MaySet(rec, id) } predicate__MaySet(rec, id) != field_RWController_lock())
+  }
+  
+  axiom ARP__MaySet__thread_start {
+    (forall rec: Ref, id: Int, t_4: Ref :: { predicate__MaySet(rec, id),predicate__thread_start(t_4) } predicate__MaySet(rec, id) != predicate__thread_start(t_4))
+  }
+  
+  axiom ARP__MaySet__thread_post {
+    (forall rec: Ref, id: Int, t_5: Ref :: { predicate__MaySet(rec, id),predicate__thread_post(t_5) } predicate__MaySet(rec, id) != predicate__thread_post(t_5))
+  }
+  
+  axiom ARP__MaySet_Lock_invariant {
+    (forall rec: Ref, id: Int, self_10_2: Ref :: { predicate__MaySet(rec, id),predicate_Lock_invariant(self_10_2) } predicate__MaySet(rec, id) != predicate_Lock_invariant(self_10_2))
+  }
+  
+  axiom ARP__MaySet {
+    (forall rec: Ref, id: Int, rec_2: Ref, id_2: Int :: { predicate__MaySet(rec, id),predicate__MaySet(rec_2, id_2) } predicate__MaySet(rec, id) == predicate__MaySet(rec_2, id_2) ==> rec == rec_2 && id == id_2)
+  }
+  
+  axiom ARP_Lock_invariant__val {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field__val())
+  }
+  
+  axiom ARP_Lock_invariant___container {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field___container())
+  }
+  
+  axiom ARP_Lock_invariant___iter_index {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field___iter_index())
+  }
+  
+  axiom ARP_Lock_invariant___previous {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field___previous())
+  }
+  
+  axiom ARP_Lock_invariant_list_acc {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_list_acc())
+  }
+  
+  axiom ARP_Lock_invariant_set_acc {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_set_acc())
+  }
+  
+  axiom ARP_Lock_invariant_dict_acc {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_dict_acc())
+  }
+  
+  axiom ARP_Lock_invariant_Measure$acc {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_Measure$acc())
+  }
+  
+  axiom ARP_Lock_invariant_Cell_value {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_Cell_value())
+  }
+  
+  axiom ARP_Lock_invariant_Cell_rds {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_Cell_rds())
+  }
+  
+  axiom ARP_Lock_invariant_RWController_c {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_RWController_c())
+  }
+  
+  axiom ARP_Lock_invariant_RWController_lock {
+    (forall self_10: Ref :: { predicate_Lock_invariant(self_10) } predicate_Lock_invariant(self_10) != field_RWController_lock())
+  }
+  
+  axiom ARP_Lock_invariant__thread_start {
+    (forall self_10: Ref, t_6: Ref :: { predicate_Lock_invariant(self_10),predicate__thread_start(t_6) } predicate_Lock_invariant(self_10) != predicate__thread_start(t_6))
+  }
+  
+  axiom ARP_Lock_invariant__thread_post {
+    (forall self_10: Ref, t_7: Ref :: { predicate_Lock_invariant(self_10),predicate__thread_post(t_7) } predicate_Lock_invariant(self_10) != predicate__thread_post(t_7))
+  }
+  
+  axiom ARP_Lock_invariant__MaySet {
+    (forall self_10: Ref, rec_3: Ref, id_3: Int :: { predicate_Lock_invariant(self_10),predicate__MaySet(rec_3, id_3) } predicate_Lock_invariant(self_10) != predicate__MaySet(rec_3, id_3))
+  }
+  
+  axiom ARP_Lock_invariant {
+    (forall self_10: Ref, self_10_3: Ref :: { predicate_Lock_invariant(self_10),predicate_Lock_invariant(self_10_3) } predicate_Lock_invariant(self_10) == predicate_Lock_invariant(self_10_3) ==> self_10 == self_10_3)
+  }
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+field Cell_value: Ref
+
+field Cell_rds: Ref
+
+field RWController_c: Ref
+
+field RWController_lock: Ref
+
+function _joinable(t: Ref): Bool 
+
+
+function _isDefined(id: Int): Bool 
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id) 
+{
+  val
+}
+
+function _asserting(val: Ref, ass: Bool): Ref
+  requires ass 
+{
+  val
+}
+
+function _int_to_bool(i: Int): Bool 
+
+
+function Lock_get_locked(self_6: Ref): Ref
+  requires issubtype(typeof(self_6), Lock(Lock_arg(typeof(self_6), 0)))
+  requires issubtype(Lock_arg(typeof(self_6), 0), object())
+  requires self_6 != null
+  ensures issubtype(typeof(result), Lock_arg(typeof(self_6), 0)) 
+
+
+function __file__(): Ref 
+
+
+function __name__(): Ref 
+
+
+function __file___0(): Ref 
+
+
+function __name___0(): Ref 
+
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+  ensures (forall other: Int :: { __prim__int___box__(other) } (__prim__int___box__(other) == result) == (other == prim)) 
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box 
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0) 
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box 
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int()) 
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool 
+{
+  self >= other
+}
+
+function int___add__(self: Int, other: Int): Int 
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int 
+{
+  self - other
+}
+
+function object___eq__(self: Ref, other: Ref): Bool
+  ensures self == other ==> result
+  ensures (self == null) != (other == null) ==> !result 
+
+
+function Level(r: Ref): Perm 
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool 
+{
+  (forall m: Measure$ :: { (m in map) } (m in map) ==> Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function str___len__(self: Ref): Int
+  ensures result >= 0 
+
+
+function str___val__(self: Ref): Int 
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str() 
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other) 
+
+
+function rd(): Perm
+  requires false 
+
+
+function rdc(count: Int): Perm
+  requires false 
+
+
+function rdw(): Perm
+  requires false 
+
+
+function rd_token(tk: Ref): Perm
+  ensures none < result && result < write 
+
+
+function globalRd(): Perm
+  ensures none < result && result < write 
+
+
+function epsilonRd(): Perm
+  ensures none < result && result < write 
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate MustInvokeCredit(r: Ref) 
+
+predicate _thread_start(t: Ref) 
+
+predicate _thread_post(t: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate Lock_invariant(self_10: Ref) {
+  true && issubtype(typeof(self_10), Lock(Lock_arg(typeof(self_10), 0))) && ((issubtype(typeof(self_10), Lock(Lock_arg(typeof(self_10), 0))) ==> true) && (issubtype(typeof(self_10), CellLock()) ==> acc(Lock_get_locked(self_10).Cell_rds, write) && issubtype(typeof(Lock_get_locked(self_10).Cell_rds), int()) && (int___ge__(int___unbox__(Lock_get_locked(self_10).Cell_rds), 0) && ((-int___unbox__(Lock_get_locked(self_10).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_10).Cell_rds) : -int___unbox__(Lock_get_locked(self_10).Cell_rds)) * globalRd() < write && (0 < -int___unbox__(Lock_get_locked(self_10).Cell_rds) ? none < write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() && write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() < write : (0 == -int___unbox__(Lock_get_locked(self_10).Cell_rds) ? none <= write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() && write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() <= write : none < write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() && write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd() <= write)) && acc(Lock_get_locked(self_10).Cell_value, write - int___unbox__(Lock_get_locked(self_10).Cell_rds) * globalRd()) && issubtype(typeof(Lock_get_locked(self_10).Cell_value), int())))))
+}
+
+method Cell___init__(_cthread_145: Ref, _caller_measures_145: Seq[Measure$], _residue_145: Perm, self: Ref, val: Ref, Cell___init___rd: Perm) returns (_current_wait_level_145: Perm)
+  requires none < Cell___init___rd && Cell___init___rd < write
+  requires _cthread_145 != null
+  requires issubtype(typeof(_cthread_145), Thread_0())
+  requires self != null
+  requires acc(_MaySet(self, 5353397235643131551055373635), write)
+  requires acc(_MaySet(self, 6437919596225225852730500419), write)
+  requires issubtype(typeof(self), Cell())
+  requires issubtype(typeof(val), int())
+  requires self != null
+  requires [true, perm(MustTerminate(_cthread_145)) == none && ((forperm _r_1: Ref [MustInvokeBounded(_r_1)] :: false) && ((forperm _r_1: Ref [MustInvokeUnbounded(_r_1)] :: false) && ((forperm _r_1: Ref [_r_1.MustReleaseBounded] :: false) && (forperm _r_1: Ref [_r_1.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _current_wait_level_145) && ((forperm _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _current_wait_level_145) && _residue_145 <= _current_wait_level_145), true]
+  ensures acc(self.Cell_value, write) && issubtype(typeof(self.Cell_value), int()) && int___eq__(self.Cell_value, val)
+  ensures acc(self.Cell_rds, write) && issubtype(typeof(self.Cell_rds), int()) && int___eq__(self.Cell_rds, __prim__int___box__(0))
+  ensures [true, (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) && ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) && ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) && (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_11: Ref
+  var val_0: Ref
+  var _cwl_145: Perm
+  var _method_measures_145: Seq[Measure$]
+  _method_measures_145 := Seq[Measure$]()
+  inhale typeof(self) == Cell()
+  _err := null
+  self_11 := self
+  val_0 := val
+  if (perm(_MaySet(self_11, 5353397235643131551055373635)) > none) {
+    exhale acc(_MaySet(self_11, 5353397235643131551055373635), write)
+    inhale acc(self_11.Cell_value, write)
+  }
+  self_11.Cell_value := val_0
+  if (perm(_MaySet(self_11, 6437919596225225852730500419)) > none) {
+    exhale acc(_MaySet(self_11, 6437919596225225852730500419), write)
+    inhale acc(self_11.Cell_rds, write)
+  }
+  self_11.Cell_rds := __prim__int___box__(0)
+  goto __end
+  label __end
+}
+
+method Writer_write(_cthread_147: Ref, _caller_measures_147: Seq[Measure$], _residue_147: Perm, self_1: Ref, data: Ref, Writer_write_rd: Perm) returns (_current_wait_level_147: Perm)
+  requires none < Writer_write_rd && Writer_write_rd < write
+  requires _cthread_147 != null
+  requires issubtype(typeof(_cthread_147), Thread_0())
+  requires issubtype(typeof(self_1), Writer())
+  requires issubtype(typeof(data), Cell())
+  requires self_1 != null
+  requires acc(data.Cell_value, write) && issubtype(typeof(data.Cell_value), int())
+  requires [acc(MustTerminate(_cthread_147), write), true]
+  requires [true, Measure$check(_caller_measures_147, _cthread_147, 2) || perm(MustTerminate(_cthread_147)) == none && ((forperm _r_4: Ref [MustInvokeBounded(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBounded] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_2: Ref [_r_2.MustReleaseBounded] :: Level(_r_2) <= _current_wait_level_147) && ((forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: Level(_r_2) <= _current_wait_level_147) && _residue_147 <= _current_wait_level_147), true]
+  ensures acc(data.Cell_value, write) && issubtype(typeof(data.Cell_value), int())
+  ensures [true, (forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) && ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) && ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) && (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_12: Ref
+  var data_1: Ref
+  var _cwl_147: Perm
+  var _method_measures_147: Seq[Measure$]
+  _method_measures_147 := Seq(Measure$create(true, _cthread_147, 2))
+  inhale typeof(self_1) == Writer()
+  _err := null
+  self_12 := self_1
+  data_1 := data
+  goto __end
+  label __end
+}
+
+method Reader_read(_cthread_148: Ref, _caller_measures_148: Seq[Measure$], _residue_148: Perm, self_2: Ref, data_0: Ref, Reader_read_rd: Perm) returns (_current_wait_level_148: Perm)
+  requires none < Reader_read_rd && Reader_read_rd < write
+  requires _cthread_148 != null
+  requires issubtype(typeof(_cthread_148), Thread_0())
+  requires issubtype(typeof(self_2), Reader())
+  requires issubtype(typeof(data_0), Cell())
+  requires self_2 != null
+  requires acc(data_0.Cell_value, Reader_read_rd) && issubtype(typeof(data_0.Cell_value), int())
+  requires [acc(MustTerminate(_cthread_148), write), true]
+  requires [true, Measure$check(_caller_measures_148, _cthread_148, 2) || perm(MustTerminate(_cthread_148)) == none && ((forperm _r_7: Ref [MustInvokeBounded(_r_7)] :: false) && ((forperm _r_7: Ref [MustInvokeUnbounded(_r_7)] :: false) && ((forperm _r_7: Ref [_r_7.MustReleaseBounded] :: false) && (forperm _r_7: Ref [_r_7.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_5: Ref [_r_5.MustReleaseBounded] :: Level(_r_5) <= _current_wait_level_148) && ((forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: Level(_r_5) <= _current_wait_level_148) && _residue_148 <= _current_wait_level_148), true]
+  ensures acc(data_0.Cell_value, Reader_read_rd) && issubtype(typeof(data_0.Cell_value), int())
+  ensures [true, (forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_13: Ref
+  var data_2: Ref
+  var _cwl_148: Perm
+  var _method_measures_148: Seq[Measure$]
+  _method_measures_148 := Seq(Measure$create(true, _cthread_148, 2))
+  inhale typeof(self_2) == Reader()
+  _err := null
+  self_13 := self_2
+  data_2 := data_0
+  goto __end
+  label __end
+}
+
+method RWController___init___ARP_TRANSFORMED(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, self_3: Ref, c: Ref, RWController___init___rd: Perm) returns (_current_wait_level_149: Perm)
+{
+  var _err: Ref
+  var self_14: Ref
+  var c_0: Ref
+  var CellLock_res: Ref
+  var _cwl_149: Perm
+  var _method_measures_149: Seq[Measure$]
+  var RWController___init___log: ARPLog
+  var Lock___init___call_rd: Perm
+  var arg__cthread_153: Ref
+  var arg__caller_measures_153: Seq[Measure$]
+  var arg__residue_153: Perm
+  var arg_self_7: Ref
+  var arg_locked_object: Ref
+  var arg_above: Ref
+  var arg_below: Ref
+  RWController___init___log := ARPLog_Nil()
+  inhale none < RWController___init___rd && RWController___init___rd < write
+  inhale _cthread_149 != null
+  inhale issubtype(typeof(_cthread_149), Thread_0())
+  inhale self_3 != null
+  inhale acc(_MaySet(self_3, 3946827255297070640841005382766471342), write)
+  RWController___init___log := ARPLog_Cons(null, predicate__MaySet(self_3, 3946827255297070640841005382766471342), write, 6, RWController___init___log)
+  inhale acc(_MaySet(self_3, 18277353020312543872605602371407881889401493330), write)
+  RWController___init___log := ARPLog_Cons(null, predicate__MaySet(self_3, 18277353020312543872605602371407881889401493330), write, 6, RWController___init___log)
+  inhale issubtype(typeof(self_3), RWController())
+  inhale issubtype(typeof(c), Cell())
+  inhale self_3 != null
+  inhale acc(c.Cell_rds, write) && issubtype(typeof(c.Cell_rds), int()) && (acc(c.Cell_value, write) && issubtype(typeof(c.Cell_value), int()) && int___eq__(c.Cell_rds, __prim__int___box__(0)))
+  RWController___init___log := ARPLog_Cons(c, field_Cell_rds(), write, 6, RWController___init___log)
+  RWController___init___log := ARPLog_Cons(c, field_Cell_value(), write, 6, RWController___init___log)
+  // Caller side leak checkinhale [true, perm(MustTerminate(_cthread_149)) == none && ((forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) && ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) && ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) && (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false))))]
+  _method_measures_149 := Seq[Measure$]()
+  inhale typeof(self_3) == RWController()
+  _err := null
+  self_14 := self_3
+  c_0 := c
+  if (perm(_MaySet(self_14, 3946827255297070640841005382766471342)) > none) {
+    label ARP_exhale_label
+    RWController___init___log := ARPLog_Cons(null, predicate__MaySet(self_14, 3946827255297070640841005382766471342), -write, 6, RWController___init___log)
+    exhale acc(_MaySet(self_14, 3946827255297070640841005382766471342), write)
+    inhale acc(self_14.RWController_c, write)
+    RWController___init___log := ARPLog_Cons(self_14, field_RWController_c(), write, 6, RWController___init___log)
+  }
+  self_14.RWController_c := c_0
+  CellLock_res := new()
+  inhale typeof(CellLock_res) == CellLock()
+  inhale Lock_get_locked(CellLock_res) == self_14.RWController_c
+  if (issubtype(typeof(CellLock_res), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) : -int___unbox__(Lock_get_locked(CellLock_res).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(CellLock_res), field_Cell_value(), 5, RWController___init___log) ==> (write < ARPLog_sum_gt(Lock_get_locked(CellLock_res), field_Cell_value(), 5, RWController___init___log) ? write + -int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) * globalRd() < perm(Lock_get_locked(CellLock_res).Cell_value) : -int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) * globalRd() < perm(Lock_get_locked(CellLock_res).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(CellLock_res), CellLock())) {
+    RWController___init___log := ARPLog_Cons(Lock_get_locked(CellLock_res), field_Cell_rds(), -write, 6, RWController___init___log)
+    RWController___init___log := ARPLog_Cons(Lock_get_locked(CellLock_res), field_Cell_value(), -write, 6, RWController___init___log)
+    RWController___init___log := ARPLog_Cons(Lock_get_locked(CellLock_res), field_Cell_value(), -(-int___unbox__(Lock_get_locked(CellLock_res).Cell_rds) * globalRd()), 5, RWController___init___log)
+  }
+  RWController___init___log := ARPLog_Cons(null, predicate_Lock_invariant(CellLock_res), write, 6, RWController___init___log)
+  fold acc(Lock_invariant(CellLock_res), write)
+  inhale none < Lock___init___call_rd && Lock___init___call_rd < write
+  arg__cthread_153 := _cthread_149
+  arg__caller_measures_153 := _method_measures_149
+  arg__residue_153 := _residue_149
+  arg_self_7 := CellLock_res
+  arg_locked_object := self_14.RWController_c
+  arg_above := null
+  arg_below := null
+  label Lock___init___call_label
+  exhale arg__cthread_153 != null
+  exhale old[Lock___init___call_label](issubtype(typeof(arg__cthread_153), Thread_0()))
+  exhale arg_self_7 != null
+  exhale old[Lock___init___call_label](issubtype(typeof(arg_self_7), Lock(Lock_arg(typeof(arg_self_7), 0))))
+  exhale old[Lock___init___call_label](issubtype(typeof(arg_locked_object), Lock_arg(typeof(arg_self_7), 0)))
+  exhale arg_above == null || old[Lock___init___call_label](issubtype(typeof(arg_above), BaseLock()))
+  exhale arg_below == null || old[Lock___init___call_label](issubtype(typeof(arg_below), BaseLock()))
+  exhale old[Lock___init___call_label](issubtype(Lock_arg(typeof(arg_self_7), 0), object()))
+  exhale arg_self_7 != null
+  exhale [acc(MustTerminate(arg__cthread_153), write), true]
+  exhale arg_above == null && arg_below != null ==> [arg__residue_153 < old[Lock___init___call_label](Level(arg_below)), true]
+  exhale arg_above != null && arg_below != null ==> old[Lock___init___call_label](Level(arg_above)) < old[Lock___init___call_label](Level(arg_below))
+  RWController___init___log := ARPLog_Cons(null, predicate_Lock_invariant(arg_self_7), -write, 6, RWController___init___log)
+  exhale acc(Lock_invariant(arg_self_7), write)
+  exhale [true, arg_above == null && arg_below != null ==> (forperm _r_20: Ref [_r_20.MustReleaseBounded] :: Level(_r_20) < Level(arg_below)) && ((forperm _r_20: Ref [_r_20.MustReleaseUnbounded] :: Level(_r_20) < Level(arg_below)) && arg__residue_153 < old[Lock___init___call_label](Level(arg_below)))]
+  // Caller side leak checkexhale [true, old[Lock___init___call_label](Measure$check(arg__caller_measures_153, arg__cthread_153, 1)) || perm(MustTerminate(arg__cthread_153)) == none && ((forperm _r_23: Ref [MustInvokeBounded(_r_23)] :: false) && ((forperm _r_23: Ref [MustInvokeUnbounded(_r_23)] :: false) && ((forperm _r_23: Ref [_r_23.MustReleaseBounded] :: false) && (forperm _r_23: Ref [_r_23.MustReleaseUnbounded] :: false))))]
+  _cwl_149 := HavocPerm()
+  inhale [(forperm _r_22: Ref [_r_22.MustReleaseBounded] :: Level(_r_22) <= _cwl_149) && ((forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: Level(_r_22) <= _cwl_149) && arg__residue_153 <= _cwl_149), true]
+  inhale arg_above == null ==> [_cwl_149 < Level(arg_self_7), true]
+  inhale arg_above != null ==> Level(arg_above) < Level(arg_self_7)
+  inhale arg_below != null ==> Level(arg_self_7) < Level(arg_below)
+  if (perm(_MaySet(self_14, 18277353020312543872605602371407881889401493330)) > none) {
+    label ARP_15_exhale_label
+    RWController___init___log := ARPLog_Cons(null, predicate__MaySet(self_14, 18277353020312543872605602371407881889401493330), -write, 6, RWController___init___log)
+    exhale acc(_MaySet(self_14, 18277353020312543872605602371407881889401493330), write)
+    inhale acc(self_14.RWController_lock, write)
+    RWController___init___log := ARPLog_Cons(self_14, field_RWController_lock(), write, 6, RWController___init___log)
+  }
+  self_14.RWController_lock := CellLock_res
+  goto __end
+  label __end
+  label RWController___init___end_label
+  exhale [(forperm _r_9: Ref [_r_9.MustReleaseBounded] :: Level(_r_9) <= _current_wait_level_149) && ((forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: Level(_r_9) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  RWController___init___log := ARPLog_Cons(self_3, field_RWController_c(), -write, 6, RWController___init___log)
+  RWController___init___log := ARPLog_Cons(self_3, field_RWController_lock(), -write, 6, RWController___init___log)
+  exhale acc(self_3.RWController_c, write) && old[RWController___init___end_label](issubtype(typeof(self_3.RWController_c), Cell())) && (old[RWController___init___end_label](object___eq__(self_3.RWController_c, c)) && (acc(self_3.RWController_lock, write) && old[RWController___init___end_label](issubtype(typeof(self_3.RWController_lock), CellLock())) && old[RWController___init___end_label](Lock_get_locked(self_3.RWController_lock) == self_3.RWController_c)))
+  exhale old[RWController___init___end_label]([_current_wait_level_149 < Level(self_3.RWController_lock), true])
+  // Body leak check.exhale [true, (forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false)))]
+  exhale [true, (forperm _r_8: Ref [_r_8.MustReleaseBounded] :: Level(_r_8) < Level(self_3.RWController_lock)) && ((forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: Level(_r_8) < Level(self_3.RWController_lock)) && old[RWController___init___end_label](_residue_149 < Level(self_3.RWController_lock)))]
+}
+
+method RWController_do_write_ARP_TRANSFORMED(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, self_4: Ref, writer: Ref, RWController_do_write_rd: Perm) returns (_current_wait_level_150: Perm)
+{
+  var _err: Ref
+  var self_15: Ref
+  var writer_0: Ref
+  var _cwl_150: Perm
+  var _method_measures_150: Seq[Measure$]
+  var RWController_do_write_log: ARPLog
+  var Lock_acquire_call_rd: Perm
+  var arg__cthread_154: Ref
+  var arg__caller_measures_154: Seq[Measure$]
+  var arg__residue_154: Perm
+  var arg_self_8: Ref
+  RWController_do_write_log := ARPLog_Nil()
+  inhale none < RWController_do_write_rd && RWController_do_write_rd < write
+  inhale _cthread_150 != null
+  inhale issubtype(typeof(_cthread_150), Thread_0())
+  inhale issubtype(typeof(self_4), RWController())
+  inhale issubtype(typeof(writer), Writer())
+  inhale self_4 != null
+  inhale writer != null
+  inhale acc(self_4.RWController_lock, RWController_do_write_rd)
+  inhale none < RWController_do_write_rd
+  RWController_do_write_log := ARPLog_Cons(self_4, field_RWController_lock(), RWController_do_write_rd, 4, RWController_do_write_log)
+  inhale issubtype(typeof(self_4.RWController_lock), CellLock())
+  inhale acc(self_4.RWController_c, RWController_do_write_rd)
+  inhale none < RWController_do_write_rd
+  RWController_do_write_log := ARPLog_Cons(self_4, field_RWController_c(), RWController_do_write_rd, 4, RWController_do_write_log)
+  inhale issubtype(typeof(self_4.RWController_c), Cell())
+  inhale Lock_get_locked(self_4.RWController_lock) == self_4.RWController_c
+  inhale [_residue_150 < Level(self_4.RWController_lock), true]
+  inhale [true, (forperm _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) < Level(self_4.RWController_lock)) && ((forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) < Level(self_4.RWController_lock)) && _residue_150 < Level(self_4.RWController_lock))]
+  // Caller side leak checkinhale [true, perm(MustTerminate(_cthread_150)) == none && ((forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false))))]
+  _method_measures_150 := Seq[Measure$]()
+  inhale typeof(self_4) == RWController()
+  _err := null
+  self_15 := self_4
+  writer_0 := writer
+  inhale none < Lock_acquire_call_rd && Lock_acquire_call_rd < write
+  arg__cthread_154 := _cthread_150
+  arg__caller_measures_154 := _method_measures_150
+  arg__residue_154 := _residue_150
+  arg_self_8 := self_15.RWController_lock
+  label Lock_acquire_call_label
+  exhale arg__cthread_154 != null
+  exhale old[Lock_acquire_call_label](issubtype(typeof(arg__cthread_154), Thread_0()))
+  exhale old[Lock_acquire_call_label](issubtype(typeof(arg_self_8), Lock(Lock_arg(typeof(arg_self_8), 0))))
+  exhale old[Lock_acquire_call_label](issubtype(Lock_arg(typeof(arg_self_8), 0), object()))
+  exhale arg_self_8 != null
+  exhale [acc(MustTerminate(arg__cthread_154), write), true]
+  exhale [arg__residue_154 < old[Lock_acquire_call_label](Level(arg_self_8)), true]
+  exhale true
+  exhale true
+  exhale [true, (forperm _r_24: Ref [_r_24.MustReleaseBounded] :: Level(_r_24) < Level(arg_self_8)) && ((forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: Level(_r_24) < Level(arg_self_8)) && arg__residue_154 < old[Lock_acquire_call_label](Level(arg_self_8)))]
+  // Caller side leak checkexhale [true, old[Lock_acquire_call_label](Measure$check(arg__caller_measures_154, arg__cthread_154, 1)) || perm(MustTerminate(arg__cthread_154)) == none && ((forperm _r_26: Ref [MustInvokeBounded(_r_26)] :: false) && ((forperm _r_26: Ref [MustInvokeUnbounded(_r_26)] :: false) && ((forperm _r_26: Ref [_r_26.MustReleaseBounded] :: false) && (forperm _r_26: Ref [_r_26.MustReleaseUnbounded] :: false))))]
+  _cwl_150 := HavocPerm()
+  inhale [(forperm _r_25: Ref [_r_25.MustReleaseBounded] :: Level(_r_25) <= _cwl_150) && ((forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: Level(_r_25) <= _cwl_150) && arg__residue_154 <= _cwl_150), true]
+  inhale acc(Lock_invariant(arg_self_8), write)
+  RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_self_8), write, 6, RWController_do_write_log)
+  inhale [acc(arg_self_8.MustReleaseUnbounded, write), acc(arg_self_8.MustReleaseUnbounded, write)]
+  unfold acc(Lock_invariant(self_15.RWController_lock), write)
+  if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ? write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+    RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_rds(), write, 6, RWController_do_write_log)
+    RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), write, 6, RWController_do_write_log)
+    RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd(), 5, RWController_do_write_log)
+  }
+  RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(self_15.RWController_lock), -write, 6, RWController_do_write_log)
+  if (!int___eq__(self_15.RWController_c.Cell_rds, __prim__int___box__(0))) {
+    var Lock_release_call_rd: Perm
+    var arg__cthread_155: Ref
+    var arg__caller_measures_155: Seq[Measure$]
+    var arg__residue_155: Perm
+    var arg_self_9: Ref
+    var RWController_do_write_call_rd: Perm
+    var arg__cthread_150: Ref
+    var arg__caller_measures_150: Seq[Measure$]
+    var arg__residue_150: Perm
+    var arg_self_4: Ref
+    var arg_writer: Ref
+    if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+      inhale (-int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ? write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd())
+    }
+    if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_rds(), -write, 6, RWController_do_write_log)
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), -write, 6, RWController_do_write_log)
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), -(-int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd()), 5, RWController_do_write_log)
+    }
+    RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(self_15.RWController_lock), write, 6, RWController_do_write_log)
+    fold acc(Lock_invariant(self_15.RWController_lock), write)
+    inhale none < Lock_release_call_rd && Lock_release_call_rd < write
+    arg__cthread_155 := _cthread_150
+    arg__caller_measures_155 := _method_measures_150
+    arg__residue_155 := _residue_150
+    arg_self_9 := self_15.RWController_lock
+    label Lock_release_call_label
+    exhale arg__cthread_155 != null
+    exhale old[Lock_release_call_label](issubtype(typeof(arg__cthread_155), Thread_0()))
+    exhale old[Lock_release_call_label](issubtype(typeof(arg_self_9), Lock(Lock_arg(typeof(arg_self_9), 0))))
+    exhale old[Lock_release_call_label](issubtype(Lock_arg(typeof(arg_self_9), 0), object()))
+    exhale arg_self_9 != null
+    exhale [acc(MustTerminate(arg__cthread_155), write), true]
+    exhale [acc(arg_self_9.MustReleaseBounded, write), (perm(arg_self_9.MustReleaseBounded) > none && old[Lock_release_call_label](Measure$check(arg__caller_measures_155, arg_self_9, 1)) ? acc(arg_self_9.MustReleaseBounded, write) : acc(arg_self_9.MustReleaseUnbounded, write))]
+    RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_self_9), -write, 6, RWController_do_write_log)
+    exhale acc(Lock_invariant(arg_self_9), write)
+    exhale true
+    exhale true
+    // Caller side leak checkexhale [true, old[Lock_release_call_label](Measure$check(arg__caller_measures_155, arg__cthread_155, 1)) || perm(MustTerminate(arg__cthread_155)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+    _cwl_150 := HavocPerm()
+    inhale [(forperm _r_27: Ref [_r_27.MustReleaseBounded] :: Level(_r_27) <= _cwl_150) && ((forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: Level(_r_27) <= _cwl_150) && arg__residue_155 <= _cwl_150), true]
+    inhale none < RWController_do_write_call_rd && RWController_do_write_call_rd < write
+    arg__cthread_150 := _cthread_150
+    arg__caller_measures_150 := _method_measures_150
+    arg__residue_150 := _residue_150
+    arg_self_4 := self_15
+    arg_writer := writer_0
+    label RWController_do_write_call_label
+    exhale arg__cthread_150 != null
+    exhale old[RWController_do_write_call_label](issubtype(typeof(arg__cthread_150), Thread_0()))
+    exhale old[RWController_do_write_call_label](issubtype(typeof(arg_self_4), RWController()))
+    exhale old[RWController_do_write_call_label](issubtype(typeof(arg_writer), Writer()))
+    exhale arg_self_4 != null
+    exhale arg_writer != null
+    label ARP_49_exhale_label
+    inhale none < old[ARP_49_exhale_label](ARPLog_sum_gt(arg_self_4, field_RWController_lock(), 1, RWController_do_write_log)) ==> RWController_do_write_call_rd < perm(arg_self_4.RWController_lock)
+    RWController_do_write_log := ARPLog_Cons(arg_self_4, field_RWController_lock(), -RWController_do_write_call_rd, 1, RWController_do_write_log)
+    exhale acc(arg_self_4.RWController_lock, RWController_do_write_call_rd)
+    exhale old[RWController_do_write_call_label](issubtype(typeof(arg_self_4.RWController_lock), CellLock()))
+    inhale none < old[ARP_49_exhale_label](ARPLog_sum_gt(arg_self_4, field_RWController_c(), 1, RWController_do_write_log)) ==> RWController_do_write_call_rd < perm(arg_self_4.RWController_c)
+    RWController_do_write_log := ARPLog_Cons(arg_self_4, field_RWController_c(), -RWController_do_write_call_rd, 1, RWController_do_write_log)
+    exhale acc(arg_self_4.RWController_c, RWController_do_write_call_rd)
+    exhale old[RWController_do_write_call_label](issubtype(typeof(arg_self_4.RWController_c), Cell()))
+    exhale old[RWController_do_write_call_label](Lock_get_locked(arg_self_4.RWController_lock) == arg_self_4.RWController_c)
+    exhale old[RWController_do_write_call_label]([arg__residue_150 < Level(arg_self_4.RWController_lock), true])
+    exhale [true, (forperm _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) < Level(arg_self_4.RWController_lock)) && ((forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) < Level(arg_self_4.RWController_lock)) && old[RWController_do_write_call_label](arg__residue_150 < Level(arg_self_4.RWController_lock)))]
+    // Caller side leak checkexhale [true, perm(MustTerminate(arg__cthread_150)) == none && ((forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false))))]
+    _cwl_150 := HavocPerm()
+    inhale [(forperm _r_13: Ref [_r_13.MustReleaseBounded] :: Level(_r_13) <= _cwl_150) && ((forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: Level(_r_13) <= _cwl_150) && arg__residue_150 <= _cwl_150), true]
+    inhale acc(arg_self_4.RWController_lock, RWController_do_write_call_rd)
+    inhale none < RWController_do_write_call_rd
+    RWController_do_write_log := ARPLog_Cons(arg_self_4, field_RWController_lock(), RWController_do_write_call_rd, 1, RWController_do_write_log)
+    inhale issubtype(typeof(arg_self_4.RWController_lock), CellLock())
+    inhale acc(arg_self_4.RWController_c, RWController_do_write_call_rd)
+    inhale none < RWController_do_write_call_rd
+    RWController_do_write_log := ARPLog_Cons(arg_self_4, field_RWController_c(), RWController_do_write_call_rd, 1, RWController_do_write_log)
+    inhale issubtype(typeof(arg_self_4.RWController_c), Cell())
+    // Body leak check.inhale [true, (forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) && ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) && ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) && (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false)))]
+  } else {
+    var Writer_write_call_rd: Perm
+    var arg__cthread_147: Ref
+    var arg__caller_measures_147: Seq[Measure$]
+    var arg__residue_147: Perm
+    var arg_self_1: Ref
+    var arg_data: Ref
+    var Lock_release_0_call_rd: Perm
+    var arg_0__cthread_155: Ref
+    var arg_0__caller_measures_155: Seq[Measure$]
+    var arg_0__residue_155: Perm
+    var arg_0_self_9: Ref
+    inhale none < Writer_write_call_rd && Writer_write_call_rd < write
+    arg__cthread_147 := _cthread_150
+    arg__caller_measures_147 := _method_measures_150
+    arg__residue_147 := _residue_150
+    arg_self_1 := writer_0
+    arg_data := self_15.RWController_c
+    label Writer_write_call_label
+    exhale arg__cthread_147 != null
+    exhale old[Writer_write_call_label](issubtype(typeof(arg__cthread_147), Thread_0()))
+    exhale old[Writer_write_call_label](issubtype(typeof(arg_self_1), Writer()))
+    exhale old[Writer_write_call_label](issubtype(typeof(arg_data), Cell()))
+    exhale arg_self_1 != null
+    RWController_do_write_log := ARPLog_Cons(arg_data, field_Cell_value(), -write, 6, RWController_do_write_log)
+    exhale acc(arg_data.Cell_value, write) && old[Writer_write_call_label](issubtype(typeof(arg_data.Cell_value), int()))
+    exhale [acc(MustTerminate(arg__cthread_147), write), true]
+    // Caller side leak checkexhale [true, old[Writer_write_call_label](Measure$check(arg__caller_measures_147, arg__cthread_147, 2)) || perm(MustTerminate(arg__cthread_147)) == none && ((forperm _r_4: Ref [MustInvokeBounded(_r_4)] :: false) && ((forperm _r_4: Ref [MustInvokeUnbounded(_r_4)] :: false) && ((forperm _r_4: Ref [_r_4.MustReleaseBounded] :: false) && (forperm _r_4: Ref [_r_4.MustReleaseUnbounded] :: false))))]
+    _cwl_150 := HavocPerm()
+    inhale [(forperm _r_2: Ref [_r_2.MustReleaseBounded] :: Level(_r_2) <= _cwl_150) && ((forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: Level(_r_2) <= _cwl_150) && arg__residue_147 <= _cwl_150), true]
+    inhale acc(arg_data.Cell_value, write) && issubtype(typeof(arg_data.Cell_value), int())
+    RWController_do_write_log := ARPLog_Cons(arg_data, field_Cell_value(), write, 6, RWController_do_write_log)
+    // Body leak check.inhale [true, (forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) && ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) && ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) && (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false)))]
+    if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+      inhale (-int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), 5, RWController_do_write_log) ? write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_15.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd())
+    }
+    if (issubtype(typeof(self_15.RWController_lock), CellLock())) {
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_rds(), -write, 6, RWController_do_write_log)
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), -write, 6, RWController_do_write_log)
+      RWController_do_write_log := ARPLog_Cons(Lock_get_locked(self_15.RWController_lock), field_Cell_value(), -(-int___unbox__(Lock_get_locked(self_15.RWController_lock).Cell_rds) * globalRd()), 5, RWController_do_write_log)
+    }
+    RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(self_15.RWController_lock), write, 6, RWController_do_write_log)
+    fold acc(Lock_invariant(self_15.RWController_lock), write)
+    inhale none < Lock_release_0_call_rd && Lock_release_0_call_rd < write
+    arg_0__cthread_155 := _cthread_150
+    arg_0__caller_measures_155 := _method_measures_150
+    arg_0__residue_155 := _residue_150
+    arg_0_self_9 := self_15.RWController_lock
+    label Lock_release_0_call_label
+    exhale arg_0__cthread_155 != null
+    exhale old[Lock_release_0_call_label](issubtype(typeof(arg_0__cthread_155), Thread_0()))
+    exhale old[Lock_release_0_call_label](issubtype(typeof(arg_0_self_9), Lock(Lock_arg(typeof(arg_0_self_9), 0))))
+    exhale old[Lock_release_0_call_label](issubtype(Lock_arg(typeof(arg_0_self_9), 0), object()))
+    exhale arg_0_self_9 != null
+    exhale [acc(MustTerminate(arg_0__cthread_155), write), true]
+    exhale [acc(arg_0_self_9.MustReleaseBounded, write), (perm(arg_0_self_9.MustReleaseBounded) > none && old[Lock_release_0_call_label](Measure$check(arg_0__caller_measures_155, arg_0_self_9, 1)) ? acc(arg_0_self_9.MustReleaseBounded, write) : acc(arg_0_self_9.MustReleaseUnbounded, write))]
+    RWController_do_write_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_0_self_9), -write, 6, RWController_do_write_log)
+    exhale acc(Lock_invariant(arg_0_self_9), write)
+    exhale true
+    exhale true
+    // Caller side leak checkexhale [true, old[Lock_release_0_call_label](Measure$check(arg_0__caller_measures_155, arg_0__cthread_155, 1)) || perm(MustTerminate(arg_0__cthread_155)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+    _cwl_150 := HavocPerm()
+    inhale [(forperm _r_27: Ref [_r_27.MustReleaseBounded] :: Level(_r_27) <= _cwl_150) && ((forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: Level(_r_27) <= _cwl_150) && arg_0__residue_155 <= _cwl_150), true]
+  }
+  goto __end
+  label __end
+  label RWController_do_write_end_label
+  exhale [(forperm _r_13: Ref [_r_13.MustReleaseBounded] :: Level(_r_13) <= _current_wait_level_150) && ((forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: Level(_r_13) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  label ARP_73_exhale_label
+  inhale none < old[ARP_73_exhale_label](ARPLog_sum_gt(self_4, field_RWController_lock(), 4, RWController_do_write_log)) ==> RWController_do_write_rd < perm(self_4.RWController_lock)
+  RWController_do_write_log := ARPLog_Cons(self_4, field_RWController_lock(), -RWController_do_write_rd, 4, RWController_do_write_log)
+  exhale acc(self_4.RWController_lock, RWController_do_write_rd)
+  exhale old[RWController_do_write_end_label](issubtype(typeof(self_4.RWController_lock), CellLock()))
+  inhale none < old[ARP_73_exhale_label](ARPLog_sum_gt(self_4, field_RWController_c(), 4, RWController_do_write_log)) ==> RWController_do_write_rd < perm(self_4.RWController_c)
+  RWController_do_write_log := ARPLog_Cons(self_4, field_RWController_c(), -RWController_do_write_rd, 4, RWController_do_write_log)
+  exhale acc(self_4.RWController_c, RWController_do_write_rd)
+  exhale old[RWController_do_write_end_label](issubtype(typeof(self_4.RWController_c), Cell()))
+  // Body leak check.exhale [true, (forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) && ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) && ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) && (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false)))]
+}
+
+method RWController_do_read_ARP_TRANSFORMED(_cthread_151: Ref, _caller_measures_151: Seq[Measure$], _residue_151: Perm, self_5: Ref, reader: Ref, RWController_do_read_rd: Perm) returns (_current_wait_level_151: Perm)
+{
+  var _err: Ref
+  var self_16: Ref
+  var reader_0: Ref
+  var _cwl_151: Perm
+  var _method_measures_151: Seq[Measure$]
+  var RWController_do_read_log: ARPLog
+  var Lock_acquire_0_call_rd: Perm
+  var arg_0__cthread_154: Ref
+  var arg_0__caller_measures_154: Seq[Measure$]
+  var arg_0__residue_154: Perm
+  var arg_0_self_8: Ref
+  var Lock_release_1_call_rd: Perm
+  var arg_1__cthread_155: Ref
+  var arg_1__caller_measures_155: Seq[Measure$]
+  var arg_1__residue_155: Perm
+  var arg_1_self_9: Ref
+  var Reader_read_call_rd: Perm
+  var arg__cthread_148: Ref
+  var arg__caller_measures_148: Seq[Measure$]
+  var arg__residue_148: Perm
+  var arg_self_2: Ref
+  var arg_data_0: Ref
+  var Lock_acquire_1_call_rd: Perm
+  var arg_1__cthread_154: Ref
+  var arg_1__caller_measures_154: Seq[Measure$]
+  var arg_1__residue_154: Perm
+  var arg_1_self_8: Ref
+  var Lock_release_2_call_rd: Perm
+  var arg_2__cthread_155: Ref
+  var arg_2__caller_measures_155: Seq[Measure$]
+  var arg_2__residue_155: Perm
+  var arg_2_self_9: Ref
+  RWController_do_read_log := ARPLog_Nil()
+  inhale none < RWController_do_read_rd && RWController_do_read_rd < write
+  inhale _cthread_151 != null
+  inhale issubtype(typeof(_cthread_151), Thread_0())
+  inhale issubtype(typeof(self_5), RWController())
+  inhale issubtype(typeof(reader), Reader())
+  inhale self_5 != null
+  inhale reader != null
+  inhale acc(self_5.RWController_lock, RWController_do_read_rd)
+  inhale none < RWController_do_read_rd
+  RWController_do_read_log := ARPLog_Cons(self_5, field_RWController_lock(), RWController_do_read_rd, 4, RWController_do_read_log)
+  inhale issubtype(typeof(self_5.RWController_lock), CellLock())
+  inhale acc(self_5.RWController_c, RWController_do_read_rd)
+  inhale none < RWController_do_read_rd
+  RWController_do_read_log := ARPLog_Cons(self_5, field_RWController_c(), RWController_do_read_rd, 4, RWController_do_read_log)
+  inhale issubtype(typeof(self_5.RWController_c), Cell())
+  inhale Lock_get_locked(self_5.RWController_lock) == self_5.RWController_c
+  inhale [_residue_151 < Level(self_5.RWController_lock), true]
+  inhale [true, (forperm _r_16: Ref [_r_16.MustReleaseBounded] :: Level(_r_16) < Level(self_5.RWController_lock)) && ((forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: Level(_r_16) < Level(self_5.RWController_lock)) && _residue_151 < Level(self_5.RWController_lock))]
+  // Caller side leak checkinhale [true, perm(MustTerminate(_cthread_151)) == none && ((forperm _r_19: Ref [MustInvokeBounded(_r_19)] :: false) && ((forperm _r_19: Ref [MustInvokeUnbounded(_r_19)] :: false) && ((forperm _r_19: Ref [_r_19.MustReleaseBounded] :: false) && (forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: false))))]
+  _method_measures_151 := Seq[Measure$]()
+  inhale typeof(self_5) == RWController()
+  _err := null
+  self_16 := self_5
+  reader_0 := reader
+  inhale none < Lock_acquire_0_call_rd && Lock_acquire_0_call_rd < write
+  arg_0__cthread_154 := _cthread_151
+  arg_0__caller_measures_154 := _method_measures_151
+  arg_0__residue_154 := _residue_151
+  arg_0_self_8 := self_16.RWController_lock
+  label Lock_acquire_0_call_label
+  exhale arg_0__cthread_154 != null
+  exhale old[Lock_acquire_0_call_label](issubtype(typeof(arg_0__cthread_154), Thread_0()))
+  exhale old[Lock_acquire_0_call_label](issubtype(typeof(arg_0_self_8), Lock(Lock_arg(typeof(arg_0_self_8), 0))))
+  exhale old[Lock_acquire_0_call_label](issubtype(Lock_arg(typeof(arg_0_self_8), 0), object()))
+  exhale arg_0_self_8 != null
+  exhale [acc(MustTerminate(arg_0__cthread_154), write), true]
+  exhale [arg_0__residue_154 < old[Lock_acquire_0_call_label](Level(arg_0_self_8)), true]
+  exhale true
+  exhale true
+  exhale [true, (forperm _r_24: Ref [_r_24.MustReleaseBounded] :: Level(_r_24) < Level(arg_0_self_8)) && ((forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: Level(_r_24) < Level(arg_0_self_8)) && arg_0__residue_154 < old[Lock_acquire_0_call_label](Level(arg_0_self_8)))]
+  // Caller side leak checkexhale [true, old[Lock_acquire_0_call_label](Measure$check(arg_0__caller_measures_154, arg_0__cthread_154, 1)) || perm(MustTerminate(arg_0__cthread_154)) == none && ((forperm _r_26: Ref [MustInvokeBounded(_r_26)] :: false) && ((forperm _r_26: Ref [MustInvokeUnbounded(_r_26)] :: false) && ((forperm _r_26: Ref [_r_26.MustReleaseBounded] :: false) && (forperm _r_26: Ref [_r_26.MustReleaseUnbounded] :: false))))]
+  _cwl_151 := HavocPerm()
+  inhale [(forperm _r_25: Ref [_r_25.MustReleaseBounded] :: Level(_r_25) <= _cwl_151) && ((forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: Level(_r_25) <= _cwl_151) && arg_0__residue_154 <= _cwl_151), true]
+  inhale acc(Lock_invariant(arg_0_self_8), write)
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_0_self_8), write, 6, RWController_do_read_log)
+  inhale [acc(arg_0_self_8.MustReleaseUnbounded, write), acc(arg_0_self_8.MustReleaseUnbounded, write)]
+  unfold acc(Lock_invariant(self_16.RWController_lock), write)
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ? write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_rds(), write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd(), 5, RWController_do_read_log)
+  }
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(self_16.RWController_lock), -write, 6, RWController_do_read_log)
+  if (perm(_MaySet(self_16.RWController_c, 6437919596225225852730500419)) > none) {
+    label ARP_86_exhale_label
+    RWController_do_read_log := ARPLog_Cons(null, predicate__MaySet(self_16.RWController_c, 6437919596225225852730500419), -write, 6, RWController_do_read_log)
+    exhale acc(_MaySet(old[ARP_86_exhale_label](self_16.RWController_c), 6437919596225225852730500419), write)
+    inhale acc(self_16.RWController_c.Cell_rds, write)
+    RWController_do_read_log := ARPLog_Cons(self_16.RWController_c, field_Cell_rds(), write, 6, RWController_do_read_log)
+  }
+  self_16.RWController_c.Cell_rds := __prim__int___box__(int___add__(int___unbox__(self_16.RWController_c.Cell_rds), 1))
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ? write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_rds(), -write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -(-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd()), 5, RWController_do_read_log)
+  }
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(self_16.RWController_lock), write, 6, RWController_do_read_log)
+  fold acc(Lock_invariant(self_16.RWController_lock), write)
+  inhale none < Lock_release_1_call_rd && Lock_release_1_call_rd < write
+  arg_1__cthread_155 := _cthread_151
+  arg_1__caller_measures_155 := _method_measures_151
+  arg_1__residue_155 := _residue_151
+  arg_1_self_9 := self_16.RWController_lock
+  label Lock_release_1_call_label
+  exhale arg_1__cthread_155 != null
+  exhale old[Lock_release_1_call_label](issubtype(typeof(arg_1__cthread_155), Thread_0()))
+  exhale old[Lock_release_1_call_label](issubtype(typeof(arg_1_self_9), Lock(Lock_arg(typeof(arg_1_self_9), 0))))
+  exhale old[Lock_release_1_call_label](issubtype(Lock_arg(typeof(arg_1_self_9), 0), object()))
+  exhale arg_1_self_9 != null
+  exhale [acc(MustTerminate(arg_1__cthread_155), write), true]
+  exhale [acc(arg_1_self_9.MustReleaseBounded, write), (perm(arg_1_self_9.MustReleaseBounded) > none && old[Lock_release_1_call_label](Measure$check(arg_1__caller_measures_155, arg_1_self_9, 1)) ? acc(arg_1_self_9.MustReleaseBounded, write) : acc(arg_1_self_9.MustReleaseUnbounded, write))]
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_1_self_9), -write, 6, RWController_do_read_log)
+  exhale acc(Lock_invariant(arg_1_self_9), write)
+  exhale true
+  exhale true
+  // Caller side leak checkexhale [true, old[Lock_release_1_call_label](Measure$check(arg_1__caller_measures_155, arg_1__cthread_155, 1)) || perm(MustTerminate(arg_1__cthread_155)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+  _cwl_151 := HavocPerm()
+  inhale [(forperm _r_27: Ref [_r_27.MustReleaseBounded] :: Level(_r_27) <= _cwl_151) && ((forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: Level(_r_27) <= _cwl_151) && arg_1__residue_155 <= _cwl_151), true]
+  inhale none < Reader_read_call_rd && Reader_read_call_rd < write
+  arg__cthread_148 := _cthread_151
+  arg__caller_measures_148 := _method_measures_151
+  arg__residue_148 := _residue_151
+  arg_self_2 := reader_0
+  arg_data_0 := self_16.RWController_c
+  label Reader_read_call_label
+  exhale arg__cthread_148 != null
+  exhale old[Reader_read_call_label](issubtype(typeof(arg__cthread_148), Thread_0()))
+  exhale old[Reader_read_call_label](issubtype(typeof(arg_self_2), Reader()))
+  exhale old[Reader_read_call_label](issubtype(typeof(arg_data_0), Cell()))
+  exhale arg_self_2 != null
+  label ARP_103_exhale_label
+  inhale none < old[ARP_103_exhale_label](ARPLog_sum_gt(arg_data_0, field_Cell_value(), 1, RWController_do_read_log)) ==> Reader_read_call_rd < perm(arg_data_0.Cell_value)
+  RWController_do_read_log := ARPLog_Cons(arg_data_0, field_Cell_value(), -Reader_read_call_rd, 1, RWController_do_read_log)
+  exhale acc(arg_data_0.Cell_value, Reader_read_call_rd)
+  exhale old[Reader_read_call_label](issubtype(typeof(arg_data_0.Cell_value), int()))
+  exhale [acc(MustTerminate(arg__cthread_148), write), true]
+  // Caller side leak checkexhale [true, old[Reader_read_call_label](Measure$check(arg__caller_measures_148, arg__cthread_148, 2)) || perm(MustTerminate(arg__cthread_148)) == none && ((forperm _r_7: Ref [MustInvokeBounded(_r_7)] :: false) && ((forperm _r_7: Ref [MustInvokeUnbounded(_r_7)] :: false) && ((forperm _r_7: Ref [_r_7.MustReleaseBounded] :: false) && (forperm _r_7: Ref [_r_7.MustReleaseUnbounded] :: false))))]
+  _cwl_151 := HavocPerm()
+  inhale [(forperm _r_5: Ref [_r_5.MustReleaseBounded] :: Level(_r_5) <= _cwl_151) && ((forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: Level(_r_5) <= _cwl_151) && arg__residue_148 <= _cwl_151), true]
+  inhale acc(arg_data_0.Cell_value, Reader_read_call_rd)
+  inhale none < Reader_read_call_rd
+  RWController_do_read_log := ARPLog_Cons(arg_data_0, field_Cell_value(), Reader_read_call_rd, 1, RWController_do_read_log)
+  inhale issubtype(typeof(arg_data_0.Cell_value), int())
+  // Body leak check.inhale [true, (forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) && ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) && ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) && (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false)))]
+  inhale none < Lock_acquire_1_call_rd && Lock_acquire_1_call_rd < write
+  arg_1__cthread_154 := _cthread_151
+  arg_1__caller_measures_154 := _method_measures_151
+  arg_1__residue_154 := _residue_151
+  arg_1_self_8 := self_16.RWController_lock
+  label Lock_acquire_1_call_label
+  exhale arg_1__cthread_154 != null
+  exhale old[Lock_acquire_1_call_label](issubtype(typeof(arg_1__cthread_154), Thread_0()))
+  exhale old[Lock_acquire_1_call_label](issubtype(typeof(arg_1_self_8), Lock(Lock_arg(typeof(arg_1_self_8), 0))))
+  exhale old[Lock_acquire_1_call_label](issubtype(Lock_arg(typeof(arg_1_self_8), 0), object()))
+  exhale arg_1_self_8 != null
+  exhale [acc(MustTerminate(arg_1__cthread_154), write), true]
+  exhale [arg_1__residue_154 < old[Lock_acquire_1_call_label](Level(arg_1_self_8)), true]
+  exhale true
+  exhale true
+  exhale [true, (forperm _r_24: Ref [_r_24.MustReleaseBounded] :: Level(_r_24) < Level(arg_1_self_8)) && ((forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: Level(_r_24) < Level(arg_1_self_8)) && arg_1__residue_154 < old[Lock_acquire_1_call_label](Level(arg_1_self_8)))]
+  // Caller side leak checkexhale [true, old[Lock_acquire_1_call_label](Measure$check(arg_1__caller_measures_154, arg_1__cthread_154, 1)) || perm(MustTerminate(arg_1__cthread_154)) == none && ((forperm _r_26: Ref [MustInvokeBounded(_r_26)] :: false) && ((forperm _r_26: Ref [MustInvokeUnbounded(_r_26)] :: false) && ((forperm _r_26: Ref [_r_26.MustReleaseBounded] :: false) && (forperm _r_26: Ref [_r_26.MustReleaseUnbounded] :: false))))]
+  _cwl_151 := HavocPerm()
+  inhale [(forperm _r_25: Ref [_r_25.MustReleaseBounded] :: Level(_r_25) <= _cwl_151) && ((forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: Level(_r_25) <= _cwl_151) && arg_1__residue_154 <= _cwl_151), true]
+  inhale acc(Lock_invariant(arg_1_self_8), write)
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_1_self_8), write, 6, RWController_do_read_log)
+  inhale [acc(arg_1_self_8.MustReleaseUnbounded, write), acc(arg_1_self_8.MustReleaseUnbounded, write)]
+  unfold acc(Lock_invariant(self_16.RWController_lock), write)
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ? write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_rds(), write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd(), 5, RWController_do_read_log)
+  }
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(self_16.RWController_lock), -write, 6, RWController_do_read_log)
+  if (perm(_MaySet(self_16.RWController_c, 6437919596225225852730500419)) > none) {
+    label ARP_117_exhale_label
+    RWController_do_read_log := ARPLog_Cons(null, predicate__MaySet(self_16.RWController_c, 6437919596225225852730500419), -write, 6, RWController_do_read_log)
+    exhale acc(_MaySet(old[ARP_117_exhale_label](self_16.RWController_c), 6437919596225225852730500419), write)
+    inhale acc(self_16.RWController_c.Cell_rds, write)
+    RWController_do_read_log := ARPLog_Cons(self_16.RWController_c, field_Cell_rds(), write, 6, RWController_do_read_log)
+  }
+  self_16.RWController_c.Cell_rds := __prim__int___box__(int___sub__(int___unbox__(self_16.RWController_c.Cell_rds), 1))
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    inhale (-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) < 0 ? int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds)) * globalRd() < write && (0 <= -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) ? none < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ==> (write < ARPLog_sum_gt(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), 5, RWController_do_read_log) ? write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value) : -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd() < perm(Lock_get_locked(self_16.RWController_lock).Cell_value)) : none < write + -int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd())
+  }
+  if (issubtype(typeof(self_16.RWController_lock), CellLock())) {
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_rds(), -write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -write, 6, RWController_do_read_log)
+    RWController_do_read_log := ARPLog_Cons(Lock_get_locked(self_16.RWController_lock), field_Cell_value(), -(-int___unbox__(Lock_get_locked(self_16.RWController_lock).Cell_rds) * globalRd()), 5, RWController_do_read_log)
+  }
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(self_16.RWController_lock), write, 6, RWController_do_read_log)
+  fold acc(Lock_invariant(self_16.RWController_lock), write)
+  inhale none < Lock_release_2_call_rd && Lock_release_2_call_rd < write
+  arg_2__cthread_155 := _cthread_151
+  arg_2__caller_measures_155 := _method_measures_151
+  arg_2__residue_155 := _residue_151
+  arg_2_self_9 := self_16.RWController_lock
+  label Lock_release_2_call_label
+  exhale arg_2__cthread_155 != null
+  exhale old[Lock_release_2_call_label](issubtype(typeof(arg_2__cthread_155), Thread_0()))
+  exhale old[Lock_release_2_call_label](issubtype(typeof(arg_2_self_9), Lock(Lock_arg(typeof(arg_2_self_9), 0))))
+  exhale old[Lock_release_2_call_label](issubtype(Lock_arg(typeof(arg_2_self_9), 0), object()))
+  exhale arg_2_self_9 != null
+  exhale [acc(MustTerminate(arg_2__cthread_155), write), true]
+  exhale [acc(arg_2_self_9.MustReleaseBounded, write), (perm(arg_2_self_9.MustReleaseBounded) > none && old[Lock_release_2_call_label](Measure$check(arg_2__caller_measures_155, arg_2_self_9, 1)) ? acc(arg_2_self_9.MustReleaseBounded, write) : acc(arg_2_self_9.MustReleaseUnbounded, write))]
+  RWController_do_read_log := ARPLog_Cons(null, predicate_Lock_invariant(arg_2_self_9), -write, 6, RWController_do_read_log)
+  exhale acc(Lock_invariant(arg_2_self_9), write)
+  exhale true
+  exhale true
+  // Caller side leak checkexhale [true, old[Lock_release_2_call_label](Measure$check(arg_2__caller_measures_155, arg_2__cthread_155, 1)) || perm(MustTerminate(arg_2__cthread_155)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+  _cwl_151 := HavocPerm()
+  inhale [(forperm _r_27: Ref [_r_27.MustReleaseBounded] :: Level(_r_27) <= _cwl_151) && ((forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: Level(_r_27) <= _cwl_151) && arg_2__residue_155 <= _cwl_151), true]
+  goto __end
+  label __end
+  label RWController_do_read_end_label
+  exhale [(forperm _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <= _current_wait_level_151) && ((forperm _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <= _current_wait_level_151) && _residue_151 <= _current_wait_level_151), true]
+  label ARP_130_exhale_label
+  inhale none < old[ARP_130_exhale_label](ARPLog_sum_gt(self_5, field_RWController_lock(), 4, RWController_do_read_log)) ==> RWController_do_read_rd < perm(self_5.RWController_lock)
+  RWController_do_read_log := ARPLog_Cons(self_5, field_RWController_lock(), -RWController_do_read_rd, 4, RWController_do_read_log)
+  exhale acc(self_5.RWController_lock, RWController_do_read_rd)
+  exhale old[RWController_do_read_end_label](issubtype(typeof(self_5.RWController_lock), CellLock()))
+  inhale none < old[ARP_130_exhale_label](ARPLog_sum_gt(self_5, field_RWController_c(), 4, RWController_do_read_log)) ==> RWController_do_read_rd < perm(self_5.RWController_c)
+  RWController_do_read_log := ARPLog_Cons(self_5, field_RWController_c(), -RWController_do_read_rd, 4, RWController_do_read_log)
+  exhale acc(self_5.RWController_c, RWController_do_read_rd)
+  exhale old[RWController_do_read_end_label](issubtype(typeof(self_5.RWController_c), Cell()))
+  // Body leak check.exhale [true, (forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false)))]
+}
+
+method Lock___init__(_cthread_153: Ref, _caller_measures_153: Seq[Measure$], _residue_153: Perm, self_7: Ref, locked_object: Ref, above: Ref, below: Ref, Lock___init___rd: Perm) returns (_current_wait_level_153: Perm)
+  requires none < Lock___init___rd && Lock___init___rd < write
+  requires _cthread_153 != null
+  requires issubtype(typeof(_cthread_153), Thread_0())
+  requires self_7 != null
+  requires issubtype(typeof(self_7), Lock(Lock_arg(typeof(self_7), 0)))
+  requires issubtype(typeof(locked_object), Lock_arg(typeof(self_7), 0))
+  requires above == null || issubtype(typeof(above), BaseLock())
+  requires below == null || issubtype(typeof(below), BaseLock())
+  requires issubtype(Lock_arg(typeof(self_7), 0), object())
+  requires self_7 != null
+  requires [acc(MustTerminate(_cthread_153), write), true]
+  requires above == null && below != null ==> [_residue_153 < Level(below), true]
+  requires above != null && below != null ==> Level(above) < Level(below)
+  requires acc(Lock_invariant(self_7), write)
+  requires [true, above == null && below != null ==> (forperm _r_20: Ref [_r_20.MustReleaseBounded] :: Level(_r_20) < Level(below)) && ((forperm _r_20: Ref [_r_20.MustReleaseUnbounded] :: Level(_r_20) < Level(below)) && _residue_153 < Level(below))]
+  requires [true, Measure$check(_caller_measures_153, _cthread_153, 1) || perm(MustTerminate(_cthread_153)) == none && ((forperm _r_23: Ref [MustInvokeBounded(_r_23)] :: false) && ((forperm _r_23: Ref [MustInvokeUnbounded(_r_23)] :: false) && ((forperm _r_23: Ref [_r_23.MustReleaseBounded] :: false) && (forperm _r_23: Ref [_r_23.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_22: Ref [_r_22.MustReleaseBounded] :: Level(_r_22) <= _current_wait_level_153) && ((forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: Level(_r_22) <= _current_wait_level_153) && _residue_153 <= _current_wait_level_153), true]
+  ensures above == null ==> [_current_wait_level_153 < Level(self_7), true]
+  ensures above != null ==> Level(above) < Level(self_7)
+  ensures below != null ==> Level(self_7) < Level(below)
+{
+  var _cwl_153: Perm
+  inhale typeof(self_7) == Lock(Lock_arg(typeof(self_7), 0))
+  inhale false
+}
+
+method Lock_acquire(_cthread_154: Ref, _caller_measures_154: Seq[Measure$], _residue_154: Perm, self_8: Ref, Lock_acquire_rd: Perm) returns (_current_wait_level_154: Perm)
+  requires none < Lock_acquire_rd && Lock_acquire_rd < write
+  requires _cthread_154 != null
+  requires issubtype(typeof(_cthread_154), Thread_0())
+  requires issubtype(typeof(self_8), Lock(Lock_arg(typeof(self_8), 0)))
+  requires issubtype(Lock_arg(typeof(self_8), 0), object())
+  requires self_8 != null
+  requires [acc(MustTerminate(_cthread_154), write), true]
+  requires [_residue_154 < Level(self_8), true]
+  requires true
+  requires true
+  requires [true, (forperm _r_24: Ref [_r_24.MustReleaseBounded] :: Level(_r_24) < Level(self_8)) && ((forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: Level(_r_24) < Level(self_8)) && _residue_154 < Level(self_8))]
+  requires [true, Measure$check(_caller_measures_154, _cthread_154, 1) || perm(MustTerminate(_cthread_154)) == none && ((forperm _r_26: Ref [MustInvokeBounded(_r_26)] :: false) && ((forperm _r_26: Ref [MustInvokeUnbounded(_r_26)] :: false) && ((forperm _r_26: Ref [_r_26.MustReleaseBounded] :: false) && (forperm _r_26: Ref [_r_26.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_25: Ref [_r_25.MustReleaseBounded] :: Level(_r_25) <= _current_wait_level_154) && ((forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: Level(_r_25) <= _current_wait_level_154) && _residue_154 <= _current_wait_level_154), true]
+  ensures acc(Lock_invariant(self_8), write)
+  ensures [acc(self_8.MustReleaseUnbounded, write), acc(self_8.MustReleaseUnbounded, write)]
+{
+  var _cwl_154: Perm
+  inhale typeof(self_8) == Lock(Lock_arg(typeof(self_8), 0))
+  inhale false
+}
+
+method Lock_release(_cthread_155: Ref, _caller_measures_155: Seq[Measure$], _residue_155: Perm, self_9: Ref, Lock_release_rd: Perm) returns (_current_wait_level_155: Perm)
+  requires none < Lock_release_rd && Lock_release_rd < write
+  requires _cthread_155 != null
+  requires issubtype(typeof(_cthread_155), Thread_0())
+  requires issubtype(typeof(self_9), Lock(Lock_arg(typeof(self_9), 0)))
+  requires issubtype(Lock_arg(typeof(self_9), 0), object())
+  requires self_9 != null
+  requires [acc(MustTerminate(_cthread_155), write), true]
+  requires [acc(self_9.MustReleaseBounded, write), (perm(self_9.MustReleaseBounded) > none && Measure$check(_caller_measures_155, self_9, 1) ? acc(self_9.MustReleaseBounded, write) : acc(self_9.MustReleaseUnbounded, write))]
+  requires acc(Lock_invariant(self_9), write)
+  requires true
+  requires true
+  requires [true, Measure$check(_caller_measures_155, _cthread_155, 1) || perm(MustTerminate(_cthread_155)) == none && ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) && ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) && ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) && (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_27: Ref [_r_27.MustReleaseBounded] :: Level(_r_27) <= _current_wait_level_155) && ((forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: Level(_r_27) <= _current_wait_level_155) && _residue_155 <= _current_wait_level_155), true]
+{
+  var _cwl_155: Perm
+  inhale typeof(self_9) == Lock(Lock_arg(typeof(self_9), 0))
+  inhale false
+}
+
+method main(_cthread_157: Ref, _caller_measures_157: Seq[Measure$], _residue_157: Perm, main_rd: Perm) returns (_current_wait_level_157: Perm)
+  requires none < main_rd && main_rd < write
+  requires _cthread_157 != null
+  requires issubtype(typeof(_cthread_157), Thread_0())
+  requires [true, perm(MustTerminate(_cthread_157)) == none && ((forperm _r_31: Ref [MustInvokeBounded(_r_31)] :: false) && ((forperm _r_31: Ref [MustInvokeUnbounded(_r_31)] :: false) && ((forperm _r_31: Ref [_r_31.MustReleaseBounded] :: false) && (forperm _r_31: Ref [_r_31.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_29: Ref [_r_29.MustReleaseBounded] :: Level(_r_29) <= _current_wait_level_157) && ((forperm _r_29: Ref [_r_29.MustReleaseUnbounded] :: Level(_r_29) <= _current_wait_level_157) && _residue_157 <= _current_wait_level_157), true]
+  ensures [true, (forperm _r_30: Ref [MustInvokeBounded(_r_30)] :: false) && ((forperm _r_30: Ref [MustInvokeUnbounded(_r_30)] :: false) && ((forperm _r_30: Ref [_r_30.MustReleaseBounded] :: false) && (forperm _r_30: Ref [_r_30.MustReleaseUnbounded] :: false)))]
+{
+  var module_defined_0: Bool
+  var module_names_0: Set[_Name]
+  var module_defined_1: Bool
+  var module_names_1: Set[_Name]
+  var _cwl_157: Perm
+  var _method_measures_157: Seq[Measure$]
+  _method_measures_157 := Seq[Measure$]()
+  module_defined_0 := true
+  module_names_0 := Set[_Name]()
+  module_names_0 := (module_names_0 union Set(_single(3106082509126931487350218591)))
+  inhale acc(__file__()._val, 99 / 100) && issubtype(typeof(__file__()._val), str()) && issubtype(typeof(__file__()._val), str())
+  module_names_0 := (module_names_0 union Set(_single(2489530350921051593165922143)))
+  inhale acc(__name__()._val, 99 / 100) && issubtype(typeof(__name__()._val), str()) && issubtype(typeof(__name__()._val), str()) && str___eq__(str___create__(8, 2489249333222104298408468319), __name__()._val)
+  module_defined_1 := false
+  module_names_1 := Set[_Name]()
+  module_names_1 := (module_names_1 union Set(_single(3106082509126931487350218591)))
+  inhale acc(__file___0()._val, 99 / 100) && issubtype(typeof(__file___0()._val), str()) && issubtype(typeof(__file___0()._val), str())
+  module_names_1 := (module_names_1 union Set(_single(2489530350921051593165922143)))
+  inhale acc(__name___0()._val, 99 / 100) && issubtype(typeof(__name___0()._val), str()) && issubtype(typeof(__name___0()._val), str()) && !str___eq__(str___create__(8, 2489249333222104298408468319), __name___0()._val)
+  if (!module_defined_1) {
+    module_defined_1 := true
+    module_names_1 := (module_names_1 union Set(_single(3682427259782798009)))
+    module_names_1 := (module_names_1 union Set(_single(5123216512802524336881954895)))
+    module_names_1 := (module_names_1 union Set(_single(3686932966091490988)))
+    module_names_1 := (module_names_1 union Set(_single(11116006324067352974226974112924930237)))
+    module_names_1 := (module_names_1 union Set(_single(4264095844347449787)))
+    module_names_1 := (module_names_1 union Set(_single(3939413879042314935)))
+    module_names_1 := (module_names_1 union Set(_single(7827276)))
+    module_names_1 := (module_names_1 union Set(_single(3584533797388877637428408140)))
+    module_names_1 := (module_names_1 union Set(_single(5969745018335918569738826320)))
+    module_names_1 := (module_names_1 union Set(_single(1701999952)))
+    module_names_1 := (module_names_1 union Set(_single(7136376649266381199951095122)))
+    module_names_1 := (module_names_1 union Set(_single(4659879962334230944322642242)))
+    module_names_1 := (module_names_1 union Set(_single(3655571673241459380)))
+    module_names_1 := (module_names_1 union Set(_single(5020080360567004017642927437)))
+    module_names_1 := (module_names_1 union Set(_single(5460990052674857173734662115181759155)))
+    module_names_1 := (module_names_1 union Set(_single(4900434677047853433511043415)))
+    assert true && (_single(4659879962334230944322642242) in module_names_1) && (_single(4659879962334230944322642242) in module_names_1)
+    assert true && (_single(4659879962334230944322642242) in module_names_1)
+    module_names_1 := (module_names_1 union Set(_single(3493880855485680332086796127)))
+    module_names_1 := (module_names_1 union Set(_single(4196433967405385533277627751)))
+    module_names_1 := (module_names_1 union Set(_single(4259881987508968607)))
+    module_names_1 := (module_names_1 union Set(_single(3682719749203270286)))
+    module_names_1 := (module_names_1 union Set(_single(1801678668)))
+  }
+  assert (_single(1801678668) in module_names_1)
+  module_names_0 := (module_names_0 union Set(_single(1801678668)))
+  module_names_0 := (module_names_0 union Set(_single(3655571673241459380)))
+  module_names_0 := (module_names_0 union Set(_single(4900434677047853433511043415)))
+  module_names_0 := (module_names_0 union Set(_single(5460990052674857173734662115181759155)))
+  module_names_0 := (module_names_0 union Set(_single(3655120293653747628)))
+  assert true
+  module_names_0 := (module_names_0 union Set(_single(3493880855485680332086796127)))
+  module_names_0 := (module_names_0 union Set(_single(1819043139)))
+  assert true
+  assert true && (_single(1801678668) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(5199367835812990865954858307)))
+  assert true && (_single(1819043139) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(4194181250029096329)))
+  module_names_0 := (module_names_0 union Set(_single(4194306525635186089)))
+  assert true && (_single(1819043139) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(1684104562)))
+  module_names_0 := (module_names_0 union Set(_single(3616712716130884270)))
+  assert true && (_single(3616712716130884270) in module_names_0) && (_single(4194306525635186089) in module_names_0) && (_single(1819043139) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(3493880855485680332086796127)))
+  module_names_0 := (module_names_0 union Set(_single(5128341585039747402801573732)))
+  module_names_0 := (module_names_0 union Set(_single(4148968741371154588)))
+  module_names_0 := (module_names_0 union Set(_single(3944811770070870270356963218213873838)))
+  goto __end
+  label __end
+}
+
+method RWController___init__(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, self_3: Ref, c: Ref, RWController___init___0_rd: Perm) returns (_current_wait_level_149: Perm)
+  requires none < RWController___init___0_rd && RWController___init___0_rd < write
+  requires _cthread_149 != null
+  requires issubtype(typeof(_cthread_149), Thread_0())
+  requires self_3 != null
+  requires acc(_MaySet(self_3, 3946827255297070640841005382766471342), write)
+  requires acc(_MaySet(self_3, 18277353020312543872605602371407881889401493330), write)
+  requires issubtype(typeof(self_3), RWController())
+  requires issubtype(typeof(c), Cell())
+  requires self_3 != null
+  requires acc(c.Cell_rds, write) && issubtype(typeof(c.Cell_rds), int()) && (acc(c.Cell_value, write) && issubtype(typeof(c.Cell_value), int()) && int___eq__(c.Cell_rds, __prim__int___box__(0)))
+  requires [true, perm(MustTerminate(_cthread_149)) == none && ((forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) && ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) && ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) && (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_9: Ref [_r_9.MustReleaseBounded] :: Level(_r_9) <= _current_wait_level_149) && ((forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: Level(_r_9) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  ensures acc(self_3.RWController_c, write) && issubtype(typeof(self_3.RWController_c), Cell()) && (object___eq__(self_3.RWController_c, c) && (acc(self_3.RWController_lock, write) && issubtype(typeof(self_3.RWController_lock), CellLock()) && Lock_get_locked(self_3.RWController_lock) == self_3.RWController_c))
+  ensures [_current_wait_level_149 < Level(self_3.RWController_lock), true]
+  ensures [true, (forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) && ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) && ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) && (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false)))]
+  ensures [true, (forperm _r_8: Ref [_r_8.MustReleaseBounded] :: Level(_r_8) < Level(self_3.RWController_lock)) && ((forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: Level(_r_8) < Level(self_3.RWController_lock)) && _residue_149 < Level(self_3.RWController_lock))]
+
+
+method RWController_do_write(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, self_4: Ref, writer: Ref, RWController_do_write_0_rd: Perm) returns (_current_wait_level_150: Perm)
+  requires none < RWController_do_write_0_rd && RWController_do_write_0_rd < write
+  requires _cthread_150 != null
+  requires issubtype(typeof(_cthread_150), Thread_0())
+  requires issubtype(typeof(self_4), RWController())
+  requires issubtype(typeof(writer), Writer())
+  requires self_4 != null
+  requires writer != null
+  requires acc(self_4.RWController_lock, RWController_do_write_0_rd) && issubtype(typeof(self_4.RWController_lock), CellLock()) && (acc(self_4.RWController_c, RWController_do_write_0_rd) && issubtype(typeof(self_4.RWController_c), Cell()) && Lock_get_locked(self_4.RWController_lock) == self_4.RWController_c)
+  requires [_residue_150 < Level(self_4.RWController_lock), true]
+  requires [true, (forperm _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) < Level(self_4.RWController_lock)) && ((forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) < Level(self_4.RWController_lock)) && _residue_150 < Level(self_4.RWController_lock))]
+  requires [true, perm(MustTerminate(_cthread_150)) == none && ((forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) && ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) && ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) && (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_13: Ref [_r_13.MustReleaseBounded] :: Level(_r_13) <= _current_wait_level_150) && ((forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: Level(_r_13) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  ensures acc(self_4.RWController_lock, RWController_do_write_0_rd) && issubtype(typeof(self_4.RWController_lock), CellLock()) && (acc(self_4.RWController_c, RWController_do_write_0_rd) && issubtype(typeof(self_4.RWController_c), Cell()))
+  ensures [true, (forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) && ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) && ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) && (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false)))]
+
+
+method RWController_do_read(_cthread_151: Ref, _caller_measures_151: Seq[Measure$], _residue_151: Perm, self_5: Ref, reader: Ref, RWController_do_read_0_rd: Perm) returns (_current_wait_level_151: Perm)
+  requires none < RWController_do_read_0_rd && RWController_do_read_0_rd < write
+  requires _cthread_151 != null
+  requires issubtype(typeof(_cthread_151), Thread_0())
+  requires issubtype(typeof(self_5), RWController())
+  requires issubtype(typeof(reader), Reader())
+  requires self_5 != null
+  requires reader != null
+  requires acc(self_5.RWController_lock, RWController_do_read_0_rd) && issubtype(typeof(self_5.RWController_lock), CellLock()) && (acc(self_5.RWController_c, RWController_do_read_0_rd) && issubtype(typeof(self_5.RWController_c), Cell()) && Lock_get_locked(self_5.RWController_lock) == self_5.RWController_c)
+  requires [_residue_151 < Level(self_5.RWController_lock), true]
+  requires [true, (forperm _r_16: Ref [_r_16.MustReleaseBounded] :: Level(_r_16) < Level(self_5.RWController_lock)) && ((forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: Level(_r_16) < Level(self_5.RWController_lock)) && _residue_151 < Level(self_5.RWController_lock))]
+  requires [true, perm(MustTerminate(_cthread_151)) == none && ((forperm _r_19: Ref [MustInvokeBounded(_r_19)] :: false) && ((forperm _r_19: Ref [MustInvokeUnbounded(_r_19)] :: false) && ((forperm _r_19: Ref [_r_19.MustReleaseBounded] :: false) && (forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <= _current_wait_level_151) && ((forperm _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <= _current_wait_level_151) && _residue_151 <= _current_wait_level_151), true]
+  ensures acc(self_5.RWController_lock, RWController_do_read_0_rd) && issubtype(typeof(self_5.RWController_lock), CellLock()) && (acc(self_5.RWController_c, RWController_do_read_0_rd) && issubtype(typeof(self_5.RWController_c), Cell()))
+  ensures [true, (forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false)))]
+
+
+method HavocPerm() returns (returnval: Perm)
+
+
+method HavocInt() returns (returnval_0: Int)
+
+
+method HavocBool() returns (returnval_1: Bool)
+
+
+method HavocRef() returns (returnval_2: Ref)
