@@ -1,0 +1,32 @@
+REFACTOR:
+
+
+- pretty printing: the code in Instantiation.cs:InfoPanelText, InstanatiationPath.cs:printInstantiationWithPredecessor and InstantiationPath.cs:printCycleInfo is very similar
+
+- Use same approach for generalizing equality explanations as for generalizing terms (Fold can be slow if we have to visit deep term structures that are later generalized away. Looking at all terms and equalities at once avoids this issue)
+
+- Filter instantiations dialog constantly recalculates number of nodes that will be added. This is slow (mainly because the instantiations are sorted before we take the first n best nodes according to the selected criterion; we do not need to know which nodes we would add to know how many we would add)
+
+
+FEATURES:
+
+
+- better support for nested quantifiers (e.g. https://github.com/microsoft/dafny/issues/229, see "nested" folder)
+
+- generalization of theory rewritings: i -> i + 1 -> i + 2, ... => T + 1 instead of T + Int[g]
+
+- rewriting steps should not make a difference for finding repeated pattern (see "arithRewrite" folder) e.g. insert rewriting step that does nothing
+
+- Smart Printing (https://bitbucket.org/nilsbecker_/axiom-profiler/issues/9/smart-printing)
+
+- Improve handling of large log files: ignoring checks (which still loads terms that are generated during those checks) performs well. A similar approach with more fine grain control may be useful (e.g. selecting which quantifiers to load)
+
+- Improved filtering:
+
+    - "Select / Deselect All" button in filtering dialog
+
+    - Use a simple querying language (e.g. "give me instantiations of quantifier A that start long paths that contain at least 5 instantiations of quantifier B that are each direct children of instantiations of quantifier C"). This may also be useful as an alternative interface for accessibility as well as for scripting.
+
+- Manually select a path in the graph to generalize by shift-clicking / drawing a rectangle
+
+- Accessibility
